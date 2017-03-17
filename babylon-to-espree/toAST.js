@@ -1,4 +1,5 @@
 var source;
+var cloneDeep = require("lodash/cloneDeep");
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -52,10 +53,8 @@ var lscNodesToBabelNodes = {
   },
   TildeCallExpression: function(node) {
     node.type = "CallExpression";
-    node.callee = node;
-    node.callee.type = "MemberExpression";
-    node.callee.object = node.left;
-    node.callee.property = node.right;
+    node.callee = node.right;
+    node.arguments = [node.left].concat(node.arguments);
   },
   NamedArrowDeclaration: function(node) {
     node.type = "FunctionDeclaration";
@@ -93,6 +92,26 @@ function transformLightscriptNode(node) {
   return lscNodesToBabelNodes[node.type](node);
 }
 
+function isForInOfShorthand(node) {
+  return (
+    (node.type === "ForOfStatement" || node.type === "ForInStatement") &&
+    node.left.type === "Identifier"
+  );
+}
+
+function transformAutoConstFor(node) {
+  var id = cloneDeep(node.left);
+  var decl = cloneDeep(node.left);
+  decl.type = "VariableDeclarator";
+  decl.id = id;
+  decl.init = null;
+
+  node.left.declarations = [decl];
+  node.left.type = "VariableDeclaration";
+  node.left.kind = "const";
+  delete node.left.name;
+}
+
 var astTransformVisitor = {
   noScope: true,
   enter (path) {
@@ -102,6 +121,11 @@ var astTransformVisitor = {
 
     if (isLightscriptNode(node)) {
       transformLightscriptNode(node);
+    }
+
+    // auto-const for for-in/for-of
+    if (isForInOfShorthand(node)) {
+      transformAutoConstFor(node);
     }
 
     // private var to track original node type

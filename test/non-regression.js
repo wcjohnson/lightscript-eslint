@@ -167,6 +167,22 @@ describe("verify", () => {
         []
       );
     });
+
+    it("for-of auto-const", () => {
+      verifyAndAssertMessages(
+        "for x of []: x",
+        { "no-undef": 2 },
+        []
+      );
+    });
+
+    it("tilde-call uses variable", () => {
+      verifyAndAssertMessages(
+        "x() -> 1; 2~x()",
+        { "no-unused-vars": 2 },
+        []
+      );
+    });
   });
 
   it("arrow function support (issue #1)", () => {
