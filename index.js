@@ -2,7 +2,7 @@ var babylonToEspree = require("./babylon-to-espree");
 var pick            = require("lodash.pickby");
 var Module          = require("module");
 var path            = require("path");
-var babylon         = require("babylon");
+var parse           = require("babylon").parse;
 var babel           = require("babel-core");
 var lightscript     = require("babel-plugin-lightscript");
 var t               = require("babel-types");
@@ -13,17 +13,13 @@ var codeFrame       = require("babel-code-frame");
 var hasPatched = false;
 var eslintOptions = {};
 
-// for lightscript
-function parse(code, opts) {
-  if (opts.useLightscript) {
-    return babel.transform(code, {
-      parserOpts: opts,
-      code: false,
-      plugins: [lightscript],
-    }).ast;
-  } else {
-    return babylon.parse(code, opts);
-  }
+function parseLightscript(code, parserOpts) {
+  var opts = {
+    parserOpts: { parserOpts: parserOpts },
+    code: false,
+    plugins: [lightscript],
+  };
+  return babel.transform(code, opts).ast;
 }
 
 function createModule(filename) {
@@ -388,7 +384,6 @@ exports.parseNoPatch = function (code, options) {
   }
 
   var opts = {
-    useLightscript: useLightscript,
     sourceType: options.sourceType,
     allowImportExportEverywhere: options.allowImportExportEverywhere, // consistent with espree
     allowReturnOutsideFunction: true,
@@ -414,7 +409,7 @@ exports.parseNoPatch = function (code, options) {
 
   var ast;
   try {
-    ast = parse(code, opts);
+    ast = useLightscript ? parseLightscript(code, opts) : parse(code, opts);
   } catch (err) {
     if (err instanceof SyntaxError) {
       err.lineNumber = err.loc.line;

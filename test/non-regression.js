@@ -49,6 +49,16 @@ function verifyAndAssertMessages(code, rules, expectedMessages, sourceType, over
 }
 
 describe("verify", () => {
+  describe("lightscript", () => {
+    it.only("named arrow function support", () => {
+      verifyAndAssertMessages(
+        "f() -> 1",
+        {},
+        []
+      );
+    });
+  });
+
   it("arrow function support (issue #1)", () => {
     verifyAndAssertMessages(
       "describe('stuff', () => {});",
