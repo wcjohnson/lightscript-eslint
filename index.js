@@ -1,10 +1,14 @@
 var babylonToEspree = require("./babylon-to-espree");
 var pick            = require("lodash.pickby");
+var cloneDeep       = require("lodash/cloneDeep");
 var Module          = require("module");
 var path            = require("path");
-var parse           = require("babylon").parse;
+var jsParse         = require("babylon").parse;
+var lscParse        = require("babylon-lightscript").parse;
+var babel           = require("babel-core");
+var lscPlugin       = require("babel-plugin-lightscript");
 var t               = require("babel-types");
-var tt              = require("babylon").tokTypes;
+var tt              = require("babylon-lightscript").tokTypes;
 var traverse        = require("babel-traverse").default;
 var codeFrame       = require("babel-code-frame");
 
@@ -389,9 +393,22 @@ exports.parseNoPatch = function (code, options) {
     ]
   };
 
+  var filePath = options.filePath;
+  var useLsc = (!filePath || /\.(lsc|lsx)/.test(filePath) || filePath === "unknown");
+
   var ast;
   try {
-    ast = parse(code, opts);
+    if (useLsc) {
+      opts.plugins.unshift("lightscript");
+      ast = lscParse(code, opts);
+      // run it through babel-plugin-lightscript to throw errors
+      babel.transformFromAst(cloneDeep(ast), code, {
+        code: false,
+        plugins: [lscPlugin],
+      });
+    } else {
+      ast = jsParse(code, opts);
+    }
   } catch (err) {
     if (err instanceof SyntaxError) {
       err.lineNumber = err.loc.line;

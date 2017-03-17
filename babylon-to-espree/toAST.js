@@ -29,12 +29,80 @@ function changeComments(nodeComments) {
   }
 }
 
+var lscNodesToBabelNodes = {
+  ForFromArrayStatement: function(node) {
+    node.type = "ForOfStatement";
+    node.left = node.id;
+    node.right = node.array;
+    if (node.elem) delete node.elem;
+  },
+  ForFromRangeStatement: function(node) {
+    node.type = "ForOfStatement";
+
+    // rangeStart doesn't really make any sense for this, but left is required...
+    node.left = node.id || node.rangeStart;
+    // also doesn't make any sense.
+    node.right = node.rangeEnd;
+  },
+  ArrayComprehension: function(node) {
+    node.type = "ArrayExpression";
+    node.elements = [
+      node.loop,
+    ];
+  },
+  TildeCallExpression: function(node) {
+    node.type = "CallExpression";
+    node.callee = node;
+    node.callee.type = "MemberExpression";
+    node.callee.object = node.left;
+    node.callee.property = node.right;
+  },
+  NamedArrowDeclaration: function(node) {
+    node.type = "FunctionDeclaration";
+  },
+  NamedArrowExpression: function(node) {
+    node.type = "FunctionExpression";
+  },
+  NamedArrowMemberExpression: function(node) {
+    node.type = "AssignmentExpression";
+
+    node.left = node;
+    node.left.type = "MemberExpression";
+    node.left.object = node.object;
+    node.left.property = node.id;
+
+    node.right = node;
+    node.right.type = "FunctionExpression";
+  },
+  IfExpression: function(node) {
+    node.type = "ConditionalExpression";
+  },
+  SafeAwaitExpression: function(node) {
+    node.type = "AwaitExpression";
+  },
+  SafeMemberExpression: function(node) {
+    node.type = "MemberExpression";
+  },
+};
+
+function isLightscriptNode(node) {
+  return !!lscNodesToBabelNodes[node.type];
+}
+
+function transformLightscriptNode(node) {
+  return lscNodesToBabelNodes[node.type](node);
+}
+
 var astTransformVisitor = {
   noScope: true,
   enter (path) {
     var node = path.node;
 
     node.range = [node.start, node.end];
+
+    if (isLightscriptNode(node)) {
+      transformLightscriptNode(node);
+    }
 
     // private var to track original node type
     node._babelType = node.type;

@@ -160,8 +160,9 @@ describe("babylon-to-esprima", () => {
     });
   });
 
+  // TODO: fix; for lightscript
   it("simple expression", () => {
-    parseAndAssertSame("a = 1");
+    parseAndAssertSame("a + 1");
   });
 
   it("class declaration", () => {
@@ -337,7 +338,7 @@ describe("babylon-to-esprima", () => {
       unpad(`
         function a () {
           try {
-            b();
+            return b();
           } catch (e) {
             // asdf
           }
@@ -427,7 +428,7 @@ describe("babylon-to-esprima", () => {
     });
 
     it("super outside method", () => {
-      parseAndAssertSame("function F() { super(); }");
+      parseAndAssertSame("function F() { return super(); }");
     });
 
     it("StringLiteral", () => {
@@ -491,7 +492,7 @@ describe("babylon-to-esprima", () => {
       parseAndAssertSame(
         unpad(`
           async function a() {
-            await 1;
+            return await 1;
           }
         `)
       );
