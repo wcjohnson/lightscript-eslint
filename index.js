@@ -2,7 +2,9 @@ var babylonToEspree = require("./babylon-to-espree");
 var pick            = require("lodash.pickby");
 var Module          = require("module");
 var path            = require("path");
-var parse           = require("babylon").parse;
+var babylon         = require("babylon");
+var babel           = require("babel-core");
+var lightscript     = require("babel-plugin-lightscript");
 var t               = require("babel-types");
 var tt              = require("babylon").tokTypes;
 var traverse        = require("babel-traverse").default;
@@ -10,6 +12,19 @@ var codeFrame       = require("babel-code-frame");
 
 var hasPatched = false;
 var eslintOptions = {};
+
+// for lightscript
+function parse(code, opts) {
+  if (opts.useLightscript) {
+    return babel.transform(code, {
+      parserOpts: opts,
+      code: false,
+      plugins: [lightscript],
+    }).ast;
+  } else {
+    return babylon.parse(code, opts);
+  }
+}
 
 function createModule(filename) {
   var mod = new Module(filename);
@@ -365,7 +380,15 @@ exports.parse = function (code, options) {
 };
 
 exports.parseNoPatch = function (code, options) {
+  var useLightscript;
+  if (options.fileName && options.fileName.length) {
+    useLightscript = /\.(lsc|lsx)/.test(options.fileName);
+  } else {
+    useLightscript = true;
+  }
+
   var opts = {
+    useLightscript: useLightscript,
     sourceType: options.sourceType,
     allowImportExportEverywhere: options.allowImportExportEverywhere, // consistent with espree
     allowReturnOutsideFunction: true,
