@@ -10,4 +10,26 @@ all others will be processed exactly as in `babel-eslint`.
 To use, just `npm install --save-dev lightscript-eslint`
 and add `parser: "lightscript-eslint"` to your `.eslintrc`.
 
-Testing so far has been limited; this is very much alpha software and it may not work well. In particular, it is unlikely to work with many rules. 
+Testing so far has been limited; this is very much alpha software and it may not work well. So far, it is has seen limited use with the following configuration:
+
+```json
+{
+  "parser": "lightscript-eslint",
+  "plugins": [
+    "react"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended"
+  ],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "rules": {
+    "semi": ["error", "never"],
+    "react/require-render-return": 0
+  }
+}
+```
