@@ -31,19 +31,17 @@ function changeComments(nodeComments) {
 }
 
 var lscNodesToBabelNodes = {
-  ForFromArrayStatement: function(node) {
+  ForInArrayStatement: function(node) {
     node.type = "ForOfStatement";
-    node.left = node.id;
+    // TODO: faux-destructuring so both are present
+    node.left = node.elem || node.idx;
     node.right = node.array;
-    if (node.elem) delete node.elem;
   },
-  ForFromRangeStatement: function(node) {
+  ForInObjectStatement: function(node) {
     node.type = "ForOfStatement";
-
-    // rangeStart doesn't really make any sense for this, but left is required...
-    node.left = node.id || node.rangeStart;
-    // also doesn't make any sense.
-    node.right = node.rangeEnd;
+    // TODO: faux-destructuring so both are present
+    node.left = node.val || node.key;
+    node.right = node.object;
   },
   ArrayComprehension: function(node) {
     node.type = "ArrayExpression";
