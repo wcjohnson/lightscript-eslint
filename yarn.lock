@@ -99,15 +99,14 @@ babel-core@^6.24.0:
     slash "^1.0.0"
     source-map "^0.5.0"
 
-babel-eslint@^7.0.0:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/babel-eslint/-/babel-eslint-7.1.1.tgz#8a6a884f085aa7060af69cfc77341c2f99370fb2"
+babel-eslint@^7.2.1:
+  version "7.2.1"
+  resolved "https://registry.yarnpkg.com/babel-eslint/-/babel-eslint-7.2.1.tgz#079422eb73ba811e3ca0865ce87af29327f8c52f"
   dependencies:
-    babel-code-frame "^6.16.0"
-    babel-traverse "^6.15.0"
-    babel-types "^6.15.0"
-    babylon "^6.13.0"
-    lodash.pickby "^4.6.0"
+    babel-code-frame "^6.22.0"
+    babel-traverse "^6.23.1"
+    babel-types "^6.23.0"
+    babylon "^6.16.1"
 
 babel-generator@^6.24.0:
   version "6.24.0"
@@ -135,11 +134,11 @@ babel-messages@^6.23.0, babel-messages@^6.8.0:
   dependencies:
     babel-runtime "^6.22.0"
 
-babel-plugin-lightscript@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/babel-plugin-lightscript/-/babel-plugin-lightscript-0.2.2.tgz#eff7120c79b5a24238040472f193848b8a9dcd0e"
+babel-plugin-lightscript@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/babel-plugin-lightscript/-/babel-plugin-lightscript-0.4.0.tgz#d6d6f380217212d549befe2010ee8e1066f1f379"
   dependencies:
-    babylon-lightscript "^0.2.1"
+    babylon-lightscript "^0.4.1"
 
 babel-register@^6.24.0:
   version "6.24.0"
@@ -216,17 +215,17 @@ babel-types@^6.21.0, babel-types@^6.23.0:
     lodash "^4.2.0"
     to-fast-properties "^1.0.1"
 
-babylon-lightscript@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/babylon-lightscript/-/babylon-lightscript-0.2.0.tgz#44e1f5fd3e3d1e37285709fe7c778746b425f12c"
-
-babylon-lightscript@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/babylon-lightscript/-/babylon-lightscript-0.2.1.tgz#14bce5c944b7f9267547a0ffef101f0e17e14f7c"
+babylon-lightscript@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/babylon-lightscript/-/babylon-lightscript-0.4.1.tgz#084413b7c46dc72abf2c8f9bcaa12927cea1ffde"
 
 babylon@^6.11.0, babylon@^6.13.0, babylon@^6.15.0:
   version "6.15.0"
   resolved "https://registry.yarnpkg.com/babylon/-/babylon-6.15.0.tgz#ba65cfa1a80e1759b0e89fb562e27dccae70348e"
+
+babylon@^6.16.1:
+  version "6.16.1"
+  resolved "https://registry.yarnpkg.com/babylon/-/babylon-6.16.1.tgz#30c5a22f481978a9e7f8cdfdf496b11d94b404d3"
 
 balanced-match@^0.4.1:
   version "0.4.2"
