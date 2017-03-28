@@ -410,7 +410,7 @@ exports.parseNoPatch = function (code, options) {
       ast = jsParse(code, opts);
     }
   } catch (err) {
-    if (err instanceof SyntaxError) {
+    if (err.loc) {
       err.lineNumber = err.loc.line;
       err.column = err.loc.column + 1;
 

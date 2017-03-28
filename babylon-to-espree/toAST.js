@@ -49,6 +49,28 @@ var lscNodesToBabelNodes = {
       node.loop,
     ];
   },
+  ObjectComprehension: function(node) {
+    node.type = "ObjectExpression";
+    const prop = cloneDeep(node);
+    prop.type = "ObjectProperty";
+    prop.key =
+      node.loop.idx ||
+      node.loop.key ||
+      node.loop.elem ||
+      node.loop.val ||
+      node.loop.left && (
+        node.loop.left.type === "Identifier"
+          ? node.loop.left
+          : node.loop.left.declarations[0].id
+      ) ||
+      node.loop.init && node.loop.init.declarations[0].id ||
+      null;
+    prop.value = node.loop;
+
+    node.properties = [
+      prop,
+    ];
+  },
   TildeCallExpression: function(node) {
     node.type = "CallExpression";
     node.callee = node.right;

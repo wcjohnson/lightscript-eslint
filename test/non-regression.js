@@ -87,23 +87,30 @@ describe("verify", () => {
       );
     });
 
-    it("ForFromArrayStatement", () => {
+    it("ForInArrayStatement", () => {
       verifyAndAssertMessages(
-        "for i, x from arr: i",
+        "for idx i, elem x in arr: i, x",
         {},
         []
       );
     });
-    it("ForFromRangeStatement", () => {
+    it("ForInObjectStatement", () => {
       verifyAndAssertMessages(
-        "for i from 0 til 10: i",
+        "for key k, val v in obj: k, v",
         {},
         []
       );
     });
     it("ArrayComprehension", () => {
       verifyAndAssertMessages(
-        "[for x of arr: x]",
+        "[for const x of arr: x]",
+        {},
+        []
+      );
+    });
+    it("ObjectComprehension", () => {
+      verifyAndAssertMessages(
+        "{for idx i, elem x in arr: i, x}",
         {},
         []
       );
@@ -164,14 +171,6 @@ describe("verify", () => {
       verifyAndAssertMessages(
         "a?[b]",
         {},
-        []
-      );
-    });
-
-    it("for-of auto-const", () => {
-      verifyAndAssertMessages(
-        "for x of []: x",
-        { "no-undef": 2 },
         []
       );
     });
