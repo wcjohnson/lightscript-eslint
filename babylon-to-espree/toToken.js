@@ -24,16 +24,6 @@ module.exports = function (token, tt, source) {
              type.isAssign) {
     token.type = "Punctuator";
     if (!token.value) token.value = type.label;
-  } else if (type === tt.tilde) {
-    token.type = "Punctuator";
-    token.value = ".";
-  } else if (type === tt.awaitArrow) {
-    token.type = "Punctuator";
-    token.value = "=";
-  } else if (type === tt.elvis) {
-    token.type = "Punctuator";
-    // ?. -> . and ?[ -> [
-    token.value = token.value[1];
   } else if (type === tt.jsxTagStart) {
     token.type = "Punctuator";
     token.value = "<";

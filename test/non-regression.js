@@ -104,7 +104,7 @@ describe("verify", () => {
     it("ArrayComprehension", () => {
       verifyAndAssertMessages(
         "[for const x of arr: x]",
-        {},
+        { "no-empty-character-class": 1 },
         []
       );
     });
@@ -179,6 +179,14 @@ describe("verify", () => {
       verifyAndAssertMessages(
         "x() -> 1; 2~x()",
         { "no-unused-vars": 2 },
+        []
+      );
+    });
+
+    it("for-in defines variables", () => {
+      verifyAndAssertMessages(
+        "for elem e in []: e",
+        { "no-undef": 1 },
         []
       );
     });

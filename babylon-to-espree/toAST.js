@@ -1,5 +1,4 @@
 var source;
-var cloneDeep = require("lodash/cloneDeep");
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -30,123 +29,12 @@ function changeComments(nodeComments) {
   }
 }
 
-var lscNodesToBabelNodes = {
-  ForInArrayStatement: function(node) {
-    node.type = "ForOfStatement";
-    // TODO: faux-destructuring so both are present
-    node.left = node.elem || node.idx;
-    node.right = node.array;
-  },
-  ForInObjectStatement: function(node) {
-    node.type = "ForOfStatement";
-    // TODO: faux-destructuring so both are present
-    node.left = node.val || node.key;
-    node.right = node.object;
-  },
-  ArrayComprehension: function(node) {
-    node.type = "ArrayExpression";
-    node.elements = [
-      node.loop,
-    ];
-  },
-  ObjectComprehension: function(node) {
-    node.type = "ObjectExpression";
-    const prop = cloneDeep(node);
-    prop.type = "ObjectProperty";
-    prop.key =
-      node.loop.idx ||
-      node.loop.key ||
-      node.loop.elem ||
-      node.loop.val ||
-      node.loop.left && (
-        node.loop.left.type === "Identifier"
-          ? node.loop.left
-          : node.loop.left.declarations[0].id
-      ) ||
-      node.loop.init && node.loop.init.declarations[0].id ||
-      null;
-    prop.value = node.loop;
-
-    node.properties = [
-      prop,
-    ];
-  },
-  TildeCallExpression: function(node) {
-    node.type = "CallExpression";
-    node.callee = node.right;
-    node.arguments = [node.left].concat(node.arguments);
-  },
-  NamedArrowDeclaration: function(node) {
-    node.type = "FunctionDeclaration";
-  },
-  NamedArrowExpression: function(node) {
-    node.type = "FunctionExpression";
-  },
-  NamedArrowMemberExpression: function(node) {
-    node.type = "AssignmentExpression";
-
-    node.left = node;
-    node.left.type = "MemberExpression";
-    node.left.object = node.object;
-    node.left.property = node.id;
-
-    node.right = node;
-    node.right.type = "FunctionExpression";
-  },
-  IfExpression: function(node) {
-    node.type = "ConditionalExpression";
-  },
-  SafeAwaitExpression: function(node) {
-    node.type = "AwaitExpression";
-  },
-  SafeMemberExpression: function(node) {
-    node.type = "MemberExpression";
-  },
-};
-
-function isLightscriptNode(node) {
-  return !!lscNodesToBabelNodes[node.type];
-}
-
-function transformLightscriptNode(node) {
-  return lscNodesToBabelNodes[node.type](node);
-}
-
-function isForInOfShorthand(node) {
-  return (
-    (node.type === "ForOfStatement" || node.type === "ForInStatement") &&
-    node.left.type === "Identifier"
-  );
-}
-
-function transformAutoConstFor(node) {
-  var id = cloneDeep(node.left);
-  var decl = cloneDeep(node.left);
-  decl.type = "VariableDeclarator";
-  decl.id = id;
-  decl.init = null;
-
-  node.left.declarations = [decl];
-  node.left.type = "VariableDeclaration";
-  node.left.kind = "const";
-  delete node.left.name;
-}
-
 var astTransformVisitor = {
   noScope: true,
   enter (path) {
     var node = path.node;
 
     node.range = [node.start, node.end];
-
-    if (isLightscriptNode(node)) {
-      transformLightscriptNode(node);
-    }
-
-    // auto-const for for-in/for-of
-    if (isForInOfShorthand(node)) {
-      transformAutoConstFor(node);
-    }
 
     // private var to track original node type
     node._babelType = node.type;

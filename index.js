@@ -1,6 +1,5 @@
 var babylonToEspree = require("./babylon-to-espree");
 var pick            = require("lodash.pickby");
-var cloneDeep       = require("lodash/cloneDeep");
 var Module          = require("module");
 var path            = require("path");
 var jsParse         = require("babylon").parse;
@@ -400,12 +399,12 @@ exports.parseNoPatch = function (code, options) {
   try {
     if (useLsc) {
       opts.plugins.unshift("lightscript");
-      ast = lscParse(code, opts);
-      // run it through babel-plugin-lightscript to throw errors
-      babel.transformFromAst(cloneDeep(ast), code, {
+      var parseTree = lscParse(code, opts);
+      var result = babel.transformFromAst(parseTree, code, {
         code: false,
         plugins: [lscPlugin],
       });
+      ast = result.ast;
     } else {
       ast = jsParse(code, opts);
     }
