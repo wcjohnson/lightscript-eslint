@@ -1,5 +1,6 @@
 var source;
 var cloneDeep = require("lodash/cloneDeep");
+var t = require("babel-types");
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -30,17 +31,34 @@ function changeComments(nodeComments) {
   }
 }
 
+function fauxDestructure(id1, id2) {
+  return t.variableDeclaration("const", [
+    t.variableDeclarator(
+      t.objectPattern([
+        t.objectProperty(id1, id1),
+        t.objectProperty(id2, id2)
+      ])
+    )
+  ]);
+}
+
 var lscNodesToBabelNodes = {
   ForInArrayStatement: function(node) {
     node.type = "ForOfStatement";
-    // TODO: faux-destructuring so both are present
-    node.left = node.elem || node.idx;
+    if (node.elem && node.idx) {
+      node.left = fauxDestructure(node.idx, node.elem);
+    } else {
+      node.left = node.elem || node.idx;
+    }
     node.right = node.array;
   },
   ForInObjectStatement: function(node) {
     node.type = "ForOfStatement";
-    // TODO: faux-destructuring so both are present
-    node.left = node.val || node.key;
+    if (node.val && node.key) {
+      node.left = fauxDestructure(node.key, node.val);
+    } else {
+      node.left = node.val || node.key;
+    }
     node.right = node.object;
   },
   ArrayComprehension: function(node) {
