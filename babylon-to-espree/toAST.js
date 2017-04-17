@@ -30,17 +30,30 @@ function changeComments(nodeComments) {
   }
 }
 
+function toPattern(identifiers) {
+  if (!identifiers.length) return null;
+
+  const pat = cloneDeep(identifiers[0]);
+  pat.type = "ArrayPattern";
+  pat.elements = identifiers;
+  const declr = cloneDeep(identifiers[0]);
+  declr.type = "VariableDeclarator";
+  declr.id = pat;
+  const decln = cloneDeep(identifiers[0]);
+  decln.type = "VariableDeclaration";
+  decln.declarations = [declr];
+  return decln;
+}
+
 var lscNodesToBabelNodes = {
   ForInArrayStatement: function(node) {
     node.type = "ForOfStatement";
-    // TODO: faux-destructuring so both are present
-    node.left = node.elem || node.idx;
+    node.left = toPattern([node.idx, node.elem]);
     node.right = node.array;
   },
   ForInObjectStatement: function(node) {
     node.type = "ForOfStatement";
-    // TODO: faux-destructuring so both are present
-    node.left = node.val || node.key;
+    node.left = toPattern([node.key, node.val]);
     node.right = node.object;
   },
   ArrayComprehension: function(node) {
