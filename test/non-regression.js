@@ -89,15 +89,15 @@ describe("verify", () => {
 
     it("ForInArrayStatement", () => {
       verifyAndAssertMessages(
-        "for idx i, elem x in arr: i, x",
-        {},
+        "for idx i, elem x in []: i, x",
+        { "no-undef": 2 },
         []
       );
     });
     it("ForInObjectStatement", () => {
       verifyAndAssertMessages(
-        "for key k, val v in obj: k, v",
-        {},
+        "for key k, val v in {}: k, v",
+        { "no-undef": 2 },
         []
       );
     });

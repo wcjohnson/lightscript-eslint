@@ -1,6 +1,5 @@
 var source;
 var cloneDeep = require("lodash/cloneDeep");
-var t = require("babel-types");
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -31,34 +30,30 @@ function changeComments(nodeComments) {
   }
 }
 
-function fauxDestructure(id1, id2) {
-  return t.variableDeclaration("const", [
-    t.variableDeclarator(
-      t.objectPattern([
-        t.objectProperty(id1, id1),
-        t.objectProperty(id2, id2)
-      ])
-    )
-  ]);
+function toPattern(identifiers) {
+  if (!identifiers.length) return null;
+
+  const pat = cloneDeep(identifiers[0]);
+  pat.type = "ArrayPattern";
+  pat.elements = identifiers;
+  const declr = cloneDeep(identifiers[0]);
+  declr.type = "VariableDeclarator";
+  declr.id = pat;
+  const decln = cloneDeep(identifiers[0]);
+  decln.type = "VariableDeclaration";
+  decln.declarations = [declr];
+  return decln;
 }
 
 var lscNodesToBabelNodes = {
   ForInArrayStatement: function(node) {
     node.type = "ForOfStatement";
-    if (node.elem && node.idx) {
-      node.left = fauxDestructure(node.idx, node.elem);
-    } else {
-      node.left = node.elem || node.idx;
-    }
+    node.left = toPattern([node.idx, node.elem]);
     node.right = node.array;
   },
   ForInObjectStatement: function(node) {
     node.type = "ForOfStatement";
-    if (node.val && node.key) {
-      node.left = fauxDestructure(node.key, node.val);
-    } else {
-      node.left = node.val || node.key;
-    }
+    node.left = toPattern([node.key, node.val]);
     node.right = node.object;
   },
   ArrayComprehension: function(node) {
