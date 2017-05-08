@@ -94,9 +94,23 @@ describe("verify", () => {
         []
       );
     });
+    it("ForInArrayStatement no idx", () => {
+      verifyAndAssertMessages(
+        "for elem x in []: x",
+        { "no-undef": 2 },
+        []
+      );
+    });
     it("ForInObjectStatement", () => {
       verifyAndAssertMessages(
         "for key k, val v in {}: k, v",
+        { "no-undef": 2 },
+        []
+      );
+    });
+    it("ForInObjectStatement no key", () => {
+      verifyAndAssertMessages(
+        "for val v in {}: v",
         { "no-undef": 2 },
         []
       );

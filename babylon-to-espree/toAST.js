@@ -1,4 +1,5 @@
 var source;
+var t = require("babel-types");
 var cloneDeep = require("lodash/cloneDeep");
 
 module.exports = function (ast, traverse, code) {
@@ -32,17 +33,16 @@ function changeComments(nodeComments) {
 
 function toPattern(identifiers) {
   if (!identifiers.length) return null;
+  // Filter omitted identifiers
+  const extantIdentifiers = [];
+  for (const identifier of identifiers) {
+    if (identifier) extantIdentifiers.push(identifier);
+  }
+  if (!extantIdentifiers.length) return null;
 
-  const pat = cloneDeep(identifiers[0]);
-  pat.type = "ArrayPattern";
-  pat.elements = identifiers;
-  const declr = cloneDeep(identifiers[0]);
-  declr.type = "VariableDeclarator";
-  declr.id = pat;
-  const decln = cloneDeep(identifiers[0]);
-  decln.type = "VariableDeclaration";
-  decln.declarations = [declr];
-  return decln;
+  return t.variableDeclaration("const", [
+    t.variableDeclarator(t.arrayPattern(extantIdentifiers))
+  ]);
 }
 
 var lscNodesToBabelNodes = {
