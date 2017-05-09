@@ -1,6 +1,8 @@
 var source;
 var t = require("babel-types");
 var cloneDeep = require("lodash/cloneDeep");
+var getSurroundingLoc = require("ast-loc-utils/lib/getSurroundingLoc").default;
+var buildAtLoc = require("ast-loc-utils/lib/buildAtLoc").default;
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -40,8 +42,11 @@ function toPattern(identifiers) {
   }
   if (!extantIdentifiers.length) return null;
 
-  return t.variableDeclaration("const", [
-    t.variableDeclarator(t.arrayPattern(extantIdentifiers))
+  const loc = getSurroundingLoc(extantIdentifiers);
+  return buildAtLoc(loc, t.variableDeclaration, "const", [
+    buildAtLoc(loc, t.variableDeclarator,
+      buildAtLoc(loc, t.arrayPattern, extantIdentifiers)
+    )
   ]);
 }
 
