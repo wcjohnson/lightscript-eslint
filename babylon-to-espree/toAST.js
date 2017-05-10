@@ -1,5 +1,8 @@
 var source;
+var t = require("babel-types");
 var cloneDeep = require("lodash/cloneDeep");
+var getSurroundingLoc = require("ast-loc-utils/lib/getSurroundingLoc").default;
+var buildAtLoc = require("ast-loc-utils/lib/buildAtLoc").default;
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -32,17 +35,19 @@ function changeComments(nodeComments) {
 
 function toPattern(identifiers) {
   if (!identifiers.length) return null;
+  // Filter omitted identifiers
+  const extantIdentifiers = [];
+  for (const identifier of identifiers) {
+    if (identifier) extantIdentifiers.push(identifier);
+  }
+  if (!extantIdentifiers.length) return null;
 
-  const pat = cloneDeep(identifiers[0]);
-  pat.type = "ArrayPattern";
-  pat.elements = identifiers;
-  const declr = cloneDeep(identifiers[0]);
-  declr.type = "VariableDeclarator";
-  declr.id = pat;
-  const decln = cloneDeep(identifiers[0]);
-  decln.type = "VariableDeclaration";
-  decln.declarations = [declr];
-  return decln;
+  const loc = getSurroundingLoc(extantIdentifiers);
+  return buildAtLoc(loc, t.variableDeclaration, "const", [
+    buildAtLoc(loc, t.variableDeclarator,
+      buildAtLoc(loc, t.arrayPattern, extantIdentifiers)
+    )
+  ]);
 }
 
 var lscNodesToBabelNodes = {
