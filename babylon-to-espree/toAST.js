@@ -43,10 +43,12 @@ function toPattern(identifiers) {
   if (!extantIdentifiers.length) return null;
 
   const loc = getSurroundingLoc(extantIdentifiers);
+
+  const arrayPattern = buildAtLoc(loc, t.arrayPattern, []);
+  arrayPattern.elements = extantIdentifiers;
+
   return buildAtLoc(loc, t.variableDeclaration, "const", [
-    buildAtLoc(loc, t.variableDeclarator,
-      buildAtLoc(loc, t.arrayPattern, extantIdentifiers)
-    )
+    buildAtLoc(loc, t.variableDeclarator, arrayPattern)
   ]);
 }
 
