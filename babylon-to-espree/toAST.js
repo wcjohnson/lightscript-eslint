@@ -43,10 +43,15 @@ function toPattern(identifiers) {
   if (!extantIdentifiers.length) return null;
 
   const loc = getSurroundingLoc(extantIdentifiers);
+
+  // XXX: This hack bypasses Babel's validation, which doesn't allow nested
+  // patterns. Nested patterns are allowed in JS, so it is unclear why the
+  // validation works this way...
+  const arrayPattern = buildAtLoc(loc, t.arrayPattern, []);
+  arrayPattern.elements = extantIdentifiers;
+
   return buildAtLoc(loc, t.variableDeclaration, "const", [
-    buildAtLoc(loc, t.variableDeclarator,
-      buildAtLoc(loc, t.arrayPattern, extantIdentifiers)
-    )
+    buildAtLoc(loc, t.variableDeclarator, arrayPattern)
   ]);
 }
 
