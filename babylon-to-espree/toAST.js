@@ -120,6 +120,11 @@ var lscNodesToBabelNodes = {
   SafeMemberExpression: function(node) {
     node.type = "MemberExpression";
   },
+  ExistentialExpression: function(node) {
+    const arg = node.argument;
+    delete node.argument;
+    Object.assign(node, arg);
+  },
 };
 
 function isLightscriptNode(node) {

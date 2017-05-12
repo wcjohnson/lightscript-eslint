@@ -189,6 +189,14 @@ describe("verify", () => {
       );
     });
 
+    it("ExistentialExpression", () => {
+      verifyAndAssertMessages(
+        "x?",
+        {},
+        []
+      );
+    });
+
     it("tilde-call uses variable", () => {
       verifyAndAssertMessages(
         "x() -> 1; 2~x()",
