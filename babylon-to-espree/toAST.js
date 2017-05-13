@@ -1,6 +1,7 @@
 var source;
 var t = require("babel-types");
 var cloneDeep = require("lodash/cloneDeep");
+var getLoc = require("ast-loc-utils/lib/getLoc").default;
 var getSurroundingLoc = require("ast-loc-utils/lib/getSurroundingLoc").default;
 var buildAtLoc = require("ast-loc-utils/lib/buildAtLoc").default;
 
@@ -130,6 +131,14 @@ var lscNodesToBabelNodes = {
     delete node.argument;
     Object.assign(node, arg);
   },
+  MatchExpression: function(node) {
+    const loc = getLoc(node);
+    buildAtLoc(loc, t.conditionalExpression,
+      buildAtLoc(loc, t.booleanLiteral, true),
+      buildAtLoc(loc, t.booleanLiteral, true),
+      buildAtLoc(loc, t.booleanLiteral, true)
+    );
+  }
 };
 
 function isLightscriptNode(node) {
