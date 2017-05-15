@@ -211,6 +211,20 @@ describe("verify", () => {
         []
       );
     });
+
+    it("MatchExpression", () => {
+      verifyAndAssertMessages(
+        unpad(`
+match x {
+  | 1: true
+  | 2 with (x) -> x
+  | else: false
+}
+        `),
+        {},
+        []
+      );
+    });
   });
 
   it("arrow function support (issue #1)", () => {
