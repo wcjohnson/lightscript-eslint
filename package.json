@@ -20,7 +20,8 @@
     "babylon": "^6.13.0",
     "babylon-lightscript": "^0.5.2",
     "lodash": "^4.17.4",
-    "lodash.pickby": "^4.6.0"
+    "lodash.pickby": "^4.6.0",
+    "ast-loc-utils": "^1.0.0"
   },
   "scripts": {
     "bootstrap": "git submodule update --init && cd eslint && npm install",
