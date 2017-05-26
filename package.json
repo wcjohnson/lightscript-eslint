@@ -1,6 +1,6 @@
 {
   "name": "@oigroup/lightscript-eslint",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "LightScript parser for ESLint, based on babel-eslint",
   "main": "index.js",
   "files": [
@@ -12,9 +12,9 @@
     "url": "https://github.com/lightscript/lightscript-eslint.git"
   },
   "dependencies": {
-    "@oigroup/babel-plugin-lightscript": "^1.0.3",
-    "@oigroup/babylon-lightscript": "^1.0.3",
-    "@oigroup/lightscript-ast-transforms": "^1.0.3",
+    "@oigroup/babel-plugin-lightscript": "^1.0.4",
+    "@oigroup/babylon-lightscript": "^1.0.4",
+    "@oigroup/lightscript-ast-transforms": "^1.0.4",
     "babel-code-frame": "^6.16.0",
     "babel-core": "^6.24.0",
     "babel-traverse": "^6.15.0",
