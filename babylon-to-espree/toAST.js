@@ -1,9 +1,9 @@
 var source;
 var t = require("babel-types");
 var cloneDeep = require("lodash/cloneDeep");
-var getLoc = require("ast-loc-utils/lib/getLoc").default;
 var getSurroundingLoc = require("ast-loc-utils/lib/getSurroundingLoc").default;
 var buildAtLoc = require("ast-loc-utils/lib/buildAtLoc").default;
+var match = require("@oigroup/lightscript-ast-transforms/lib/match");
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -131,13 +131,11 @@ var lscNodesToBabelNodes = {
     delete node.argument;
     Object.assign(node, arg);
   },
-  MatchExpression: function(node) {
-    const loc = getLoc(node);
-    buildAtLoc(loc, t.conditionalExpression,
-      buildAtLoc(loc, t.booleanLiteral, true),
-      buildAtLoc(loc, t.booleanLiteral, true),
-      buildAtLoc(loc, t.booleanLiteral, true)
-    );
+  MatchExpression: function(node, path) {
+    match.transformMatchExpression(path, false);
+  },
+  MatchStatement: function(node, path) {
+    match.transformMatchStatement(path, false);
   }
 };
 
@@ -145,8 +143,8 @@ function isLightscriptNode(node) {
   return !!lscNodesToBabelNodes[node.type];
 }
 
-function transformLightscriptNode(node) {
-  return lscNodesToBabelNodes[node.type](node);
+function transformLightscriptNode(node, path) {
+  return lscNodesToBabelNodes[node.type](node, path);
 }
 
 function isForInOfShorthand(node) {
@@ -177,7 +175,7 @@ var astTransformVisitor = {
     node.range = [node.start, node.end];
 
     if (isLightscriptNode(node)) {
-      transformLightscriptNode(node);
+      transformLightscriptNode(node, path);
     }
 
     // auto-const for for-in/for-of

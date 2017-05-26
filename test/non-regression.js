@@ -212,19 +212,36 @@ describe("verify", () => {
       );
     });
 
-    it("MatchExpression", () => {
+    it("MatchStatement", () => {
       verifyAndAssertMessages(
         unpad(`
-match x {
+match 1 {
   | 1: true
   | 2 with (x) -> x
+  | 3 with y: y
   | else: false
 }
         `),
-        {},
+        { "no-undef": 2, "no-unused-vars": 2 },
         []
       );
     });
+
+    it("MatchExpression", () => {
+      verifyAndAssertMessages(
+        unpad(`
+z = match 1 {
+  | 1: true
+  | 2 with (x) -> x
+  | 3 with y: y
+  | else: false
+}
+        `),
+        { "no-undef": 2 },
+        []
+      );
+    });
+
   });
 
   it("arrow function support (issue #1)", () => {
