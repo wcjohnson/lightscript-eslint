@@ -1,6 +1,6 @@
 {
   "name": "lightscript-eslint",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "LightScript parser for ESLint, based on babel-eslint",
   "main": "index.js",
   "files": [
@@ -12,16 +12,16 @@
     "url": "https://github.com/lightscript/lightscript-eslint.git"
   },
   "dependencies": {
+    "ast-loc-utils": "^1.0.0",
     "babel-code-frame": "^6.16.0",
     "babel-core": "^6.24.0",
-    "babel-plugin-lightscript": "^0.5.2",
+    "babel-plugin-lightscript": "^0.5.4",
     "babel-traverse": "^6.15.0",
     "babel-types": "^6.15.0",
     "babylon": "^6.13.0",
-    "babylon-lightscript": "^0.5.2",
+    "babylon-lightscript": "^0.5.4",
     "lodash": "^4.17.4",
-    "lodash.pickby": "^4.6.0",
-    "ast-loc-utils": "^1.0.0"
+    "lodash.pickby": "^4.6.0"
   },
   "scripts": {
     "bootstrap": "git submodule update --init && cd eslint && npm install",
