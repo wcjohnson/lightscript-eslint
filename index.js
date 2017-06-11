@@ -4,11 +4,11 @@ var cloneDeep       = require("lodash/cloneDeep");
 var Module          = require("module");
 var path            = require("path");
 var jsParse         = require("babylon").parse;
-var lscParse        = require("@oigroup/babylon-lightscript").parse;
+var lscParse        = require("@oigroup/babylon-lightscript-self-host").parse;
 var babel           = require("babel-core");
-var lscPlugin       = require("@oigroup/babel-plugin-lightscript");
+var lscPlugin       = require("@oigroup/babel-plugin-lightscript-self-host");
 var t               = require("babel-types");
-var tt              = require("@oigroup/babylon-lightscript").tokTypes;
+var tt              = require("@oigroup/babylon-lightscript-self-host").tokTypes;
 var traverse        = require("babel-traverse").default;
 var codeFrame       = require("babel-code-frame");
 
