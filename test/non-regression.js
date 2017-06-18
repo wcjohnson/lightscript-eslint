@@ -217,8 +217,8 @@ describe("verify", () => {
         unpad(`
 match 1 {
   | 1: true
-  | 2 with (x) -> x
-  | 3 with y: y
+  | 2 with { x }: x
+  | 3 as { y } if y > 2: y
   | else: false
 }
         `),
@@ -232,8 +232,8 @@ match 1 {
         unpad(`
 z = match 1 {
   | 1: true
-  | 2 with (x) -> x
-  | 3 with y: y
+  | 2 with { x }: x
+  | 3 as { y } if y > 2: y
   | else: false
 }
         `),

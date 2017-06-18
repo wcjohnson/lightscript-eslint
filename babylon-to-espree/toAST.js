@@ -3,7 +3,7 @@ var t = require("babel-types");
 var cloneDeep = require("lodash/cloneDeep");
 var getSurroundingLoc = require("ast-loc-utils/lib/getSurroundingLoc").default;
 var buildAtLoc = require("ast-loc-utils/lib/buildAtLoc").default;
-var match = require("@oigroup/lightscript-ast-transforms/lib/match");
+var match = require("@oigroup/babel-plugin-lightscript/lib/match");
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -69,9 +69,9 @@ var lscNodesToBabelNodes = {
   },
   ArrayComprehension: function(node) {
     node.type = "ArrayExpression";
-    node.elements = [
-      node.loop,
-    ];
+    if (!node.elements && node.loop) {
+      node.elements = [node.loop];
+    }
   },
   ObjectComprehension: function(node) {
     node.type = "ObjectExpression";
@@ -132,10 +132,10 @@ var lscNodesToBabelNodes = {
     Object.assign(node, arg);
   },
   MatchExpression: function(node, path) {
-    match.transformMatchExpression(path, false);
+    match.transformMatchExpression(path);
   },
   MatchStatement: function(node, path) {
-    match.transformMatchStatement(path, false);
+    match.transformMatchStatement(path);
   }
 };
 
@@ -168,15 +168,21 @@ function transformAutoConstFor(node) {
 }
 
 var astTransformVisitor = {
-  noScope: true,
   enter (path) {
     var node = path.node;
+    if (node.start == null || node.end == null || node.loc == null) {
+      console.log("Unmapped node of type", node.type);
+      node.start = 0; node.end = 1;
+      node.loc = { start: { line: 1, column: 0 }, end: { line: 1, column: 1 } };
+    }
 
     node.range = [node.start, node.end];
 
     if (isLightscriptNode(node)) {
       transformLightscriptNode(node, path);
     }
+
+    node = path.node;
 
     // auto-const for for-in/for-of
     if (isForInOfShorthand(node)) {

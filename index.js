@@ -4,9 +4,9 @@ var cloneDeep       = require("lodash/cloneDeep");
 var Module          = require("module");
 var path            = require("path");
 var jsParse         = require("babylon").parse;
-var lscParse        = require("@oigroup/babylon-lightscript").parse;
 var babel           = require("babel-core");
 var lscPlugin       = require("@oigroup/babel-plugin-lightscript");
+var lscConfig       = require("@oigroup/babel-plugin-lightscript/lib/config");
 var t               = require("babel-types");
 var tt              = require("@oigroup/babylon-lightscript").tokTypes;
 var traverse        = require("babel-traverse").default;
@@ -399,13 +399,30 @@ exports.parseNoPatch = function (code, options) {
   var ast;
   try {
     if (useLsc) {
-      opts.plugins.unshift("lightscript");
-      ast = lscParse(code, opts);
+      // TODO: use babel-config to get this stuff
+      const lscOpts = {
+        existential: true,
+        safeCall: true,
+        bangCall: true,
+        flippedImports: true,
+        noEnforcedSubscriptIndentaton: true
+      };
+
+      const parserOpts = lscConfig.getParserOpts(lscOpts);
+      parserOpts.sourceType = options.sourceType;
+      parserOpts.allowImportExportEverywhere = options.allowImportExportEverywhere;
+      parserOpts.allowReturnOutsideFunction = true;
+      parserOpts.allowSuperOutsideMethod = true;
+
+      ast = parserOpts.parser(code, parserOpts);
+      // ast = lscParse(code, parserOpts);
       // run it through babel-plugin-lightscript to throw errors
-      babel.transformFromAst(cloneDeep(ast), code, {
+      const { ast: nextAst } = babel.transformFromAst(cloneDeep(ast), code, {
         code: false,
-        plugins: [lscPlugin],
+        plugins: [[lscPlugin, lscOpts]],
       });
+      nextAst.tokens = ast.tokens;
+      ast = nextAst;
     } else {
       ast = jsParse(code, opts);
     }
