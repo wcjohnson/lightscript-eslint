@@ -269,7 +269,7 @@ z = match 1 {
       );
     });
 
-    it("crash 1", () => {
+    it("crash no-unexpected-multiline", () => {
       verifyAndAssertMessages(
         unpad(`
 a = b -> c
@@ -298,7 +298,7 @@ match x:
       }
     });
 
-    it("crash 3", () => {
+    it("crash regex-linting", () => {
       verifyAndAssertMessages(
         unpad(`
 // comment
@@ -339,6 +339,17 @@ export default class Config extends ReduxComponent:
         `),
         { "no-empty-character-class": 1, "no-regex-spaces": 1 },
         []
+      );
+    });
+
+    it("for idx unused", () => {
+      verifyAndAssertMessages(
+        unpad(`
+for idx i, elem e in arr:
+  e
+        `),
+        { "no-unused-vars": 1 },
+        ["2:9 'i' is assigned a value but never used. no-unused-vars"]
       );
     });
 
