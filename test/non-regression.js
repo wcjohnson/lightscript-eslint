@@ -137,6 +137,17 @@ describe("verify", () => {
         []
       );
     });
+
+    it("IfExpression", () => {
+      verifyAndAssertMessages(
+        unpad(`
+y = if d: e
+x = if a: b else: c
+        `),
+        {},
+        []
+      );
+    });
     it("ObjectComprehension", () => {
       verifyAndAssertMessages(
         "{for idx i, elem x in arr: (i, x)}",
