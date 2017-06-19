@@ -405,7 +405,7 @@ exports.parseNoPatch = function (code, options) {
         safeCall: true,
         bangCall: true,
         flippedImports: true,
-        noEnforcedSubscriptIndentaton: true,
+        noEnforcedSubscriptIndentation: true,
         enhancedComprehension: true
       };
 

@@ -1,6 +1,6 @@
 {
   "name": "@oigroup/lightscript-eslint",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.1.1",
   "description": "LightScript parser for ESLint, based on babel-eslint",
   "main": "index.js",
   "files": [
