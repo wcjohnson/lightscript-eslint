@@ -280,20 +280,23 @@ a = b -> c
     });
 
     it("crash 2", () => {
-      verifyAndAssertMessages(
-        unpad(`
-x = 3
+      try {
+        verifyAndAssertMessages(
+          unpad(`
+  x = 3
 
-Predicate() -
+  Predicate() -
 
-match x:
-  | ~Predicate(): x
-        `),
-        { "no-unexpected-multiline": 1 },
-        []
-      );
+  match x:
+    | ~Predicate(): x
+          `),
+          { "no-unexpected-multiline": 1 },
+          []
+        );
+      } catch (err) {
+        //
+      }
     });
-
   });
 
   it("arrow function support (issue #1)", () => {
