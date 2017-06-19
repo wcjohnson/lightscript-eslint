@@ -405,7 +405,8 @@ exports.parseNoPatch = function (code, options) {
         safeCall: true,
         bangCall: true,
         flippedImports: true,
-        noEnforcedSubscriptIndentaton: true
+        noEnforcedSubscriptIndentaton: true,
+        enhancedComprehension: true
       };
 
       const parserOpts = lscConfig.getParserOpts(lscOpts);

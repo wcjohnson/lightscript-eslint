@@ -28,6 +28,7 @@
     "eslint": "cd eslint && mocha -c tests/lib/rules/*.js -r ../eslint-tester.js",
     "test": "npm run lint && npm run test-only",
     "test-only": "mocha",
+    "test:debug": "node --inspect --debug-brk node_modules/.bin/_mocha",
     "lint": "eslint index.js babylon-to-espree test",
     "fix": "eslint index.js babylon-to-espree test --fix",
     "preversion": "npm test",
