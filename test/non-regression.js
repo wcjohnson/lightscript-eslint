@@ -301,6 +301,7 @@ match x:
     it("crash 3", () => {
       verifyAndAssertMessages(
         unpad(`
+// comment
 import { ReduxComponent, action, selector } from 'redux-components'
 { assign } = Object
 
@@ -316,6 +317,25 @@ export default class Config extends ReduxComponent:
       | this.SET_PLUGINS: ({}~assign(state, { plugins: action.payload }))
       | this.SET_OPTIONS: ({}~assign(state, { options: action.payload }))
       | else: state
+
+  @action({isDispatcher: true})
+  setCompiler(value) ->
+    ({ type: this.SET_COMPILER, payload: value })
+
+  @action({isDispatcher: true})
+  setPlugins(value) ->
+    ({ type: this.SET_PLUGINS, payload: value })
+
+  @action({isDispatcher: true})
+  setFeatures(value) ->
+    ({ type: this.SET_FEATURES, payload: value })
+
+  @action({isDispatcher: true})
+  setOptions(value) ->
+    ({ type: this.SET_OPTIONS, payload: value })
+
+  @selector({isObservable: true})
+  get(state) -> state
         `),
         { "no-empty-character-class": 1, "no-regex-spaces": 1 },
         []
