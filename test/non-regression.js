@@ -283,20 +283,46 @@ a = b -> c
       try {
         verifyAndAssertMessages(
           unpad(`
-  x = 3
+x = 3
 
-  Predicate() -
+Predicate() -
 
-  match x:
-    | ~Predicate(): x
+match x:
+  | ~Predicate(): x
           `),
           { "no-unexpected-multiline": 1 },
           []
         );
       } catch (err) {
-        //
+        console.log("!!!!!!!!!!!!!!!!! TODO: FIX THIS CRASH");
       }
     });
+
+    it("crash 3", () => {
+      verifyAndAssertMessages(
+        unpad(`
+import { ReduxComponent, action, selector } from 'redux-components'
+{ assign } = Object
+
+initialState = { compiler: 'latest' }
+
+export default class Config extends ReduxComponent:
+  static verbs = ['SET_COMPILER', 'SET_FEATURES', 'SET_PLUGINS', 'SET_OPTIONS']
+
+  reducer(state = initialState, action) ->
+    match action.type:
+      | this.SET_COMPILER: ({}~assign(state, { compiler: action.payload }))
+      | this.SET_FEATURES: ({}~assign(state, { features: action.payload }))
+      | this.SET_PLUGINS: ({}~assign(state, { plugins: action.payload }))
+      | this.SET_OPTIONS: ({}~assign(state, { options: action.payload }))
+      | else: state
+        `),
+        { "no-empty-character-class": 1, "no-regex-spaces": 1 },
+        []
+      );
+    });
+
+    //////////// end lsc tests
   });
 
   it("arrow function support (issue #1)", () => {
