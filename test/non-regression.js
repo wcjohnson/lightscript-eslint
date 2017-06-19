@@ -87,16 +87,24 @@ describe("verify", () => {
       );
     });
 
+    it("assign arrow to var", () => {
+      verifyAndAssertMessages(
+        "a = b -> b; a",
+        { "no-undef": 2, "no-unused-vars": 2 },
+        []
+      );
+    });
+
     it("ForInArrayStatement", () => {
       verifyAndAssertMessages(
-        "for idx i, elem x in []: i, x",
+        "for idx i, elem x in []: (i, x)",
         { "no-undef": 2 },
         []
       );
     });
     it("ForInArrayStatement destructure", () => {
       verifyAndAssertMessages(
-        "for idx i, elem { a, b } in []: i, a, b",
+        "for idx i, elem { a, b } in []: (i, a, b)",
         { "no-undef": 2 },
         []
       );
@@ -110,7 +118,7 @@ describe("verify", () => {
     });
     it("ForInObjectStatement", () => {
       verifyAndAssertMessages(
-        "for key k, val v in {}: k, v",
+        "for key k, val v in {}: (k, v)",
         { "no-undef": 2 },
         []
       );
@@ -129,9 +137,20 @@ describe("verify", () => {
         []
       );
     });
+
+    it("IfExpression", () => {
+      verifyAndAssertMessages(
+        unpad(`
+y = if d: e
+x = if a: b else: c
+        `),
+        {},
+        []
+      );
+    });
     it("ObjectComprehension", () => {
       verifyAndAssertMessages(
-        "{for idx i, elem x in arr: i, x}",
+        "{for idx i, elem x in arr: (i, x)}",
         {},
         []
       );
@@ -204,6 +223,14 @@ describe("verify", () => {
       );
     });
 
+    it("SafeCallExpression", () => {
+      verifyAndAssertMessages(
+        "a?(b, c)",
+        {},
+        []
+      );
+    });
+
     it("tilde-call uses variable", () => {
       verifyAndAssertMessages(
         "x() -> 1; 2~x()",
@@ -217,8 +244,8 @@ describe("verify", () => {
         unpad(`
 match 1 {
   | 1: true
-  | 2 with (x) -> x
-  | 3 with y: y
+  | 2 with { x }: x
+  | 3 as { y } if y > 2: y
   | else: false
 }
         `),
@@ -232,12 +259,37 @@ match 1 {
         unpad(`
 z = match 1 {
   | 1: true
-  | 2 with (x) -> x
-  | 3 with y: y
+  | 2 with { x }: x
+  | 3 as { y } if y > 2: y
   | else: false
 }
         `),
         { "no-undef": 2 },
+        []
+      );
+    });
+
+    it("crash 1", () => {
+      verifyAndAssertMessages(
+        unpad(`
+a = b -> c
+        `),
+        { "arrow-spacing": 1 },
+        []
+      );
+    });
+
+    it("crash 2", () => {
+      verifyAndAssertMessages(
+        unpad(`
+x = 3
+
+Predicate() -
+
+match x:
+  | ~Predicate(): x
+        `),
+        { "no-unexpected-multiline": 1 },
         []
       );
     });
