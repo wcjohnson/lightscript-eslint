@@ -1,9 +1,5 @@
 var source;
-var t = require("babel-types");
 var cloneDeep = require("lodash/cloneDeep");
-var getSurroundingLoc = require("ast-loc-utils/lib/getSurroundingLoc").default;
-var buildAtLoc = require("ast-loc-utils/lib/buildAtLoc").default;
-var match = require("@oigroup/lightscript-ast-transforms/lib/match");
 
 module.exports = function (ast, traverse, code) {
   source = code;
@@ -34,119 +30,6 @@ function changeComments(nodeComments) {
   }
 }
 
-function toPattern(identifiers) {
-  if (!identifiers.length) return null;
-  // Filter omitted identifiers
-  const extantIdentifiers = [];
-  for (const identifier of identifiers) {
-    if (identifier) extantIdentifiers.push(identifier);
-  }
-  if (!extantIdentifiers.length) return null;
-
-  const loc = getSurroundingLoc(extantIdentifiers);
-
-  // XXX: This hack bypasses Babel's validation, which doesn't allow nested
-  // patterns. Nested patterns are allowed in JS, so it is unclear why the
-  // validation works this way...
-  const arrayPattern = buildAtLoc(loc, t.arrayPattern, []);
-  arrayPattern.elements = extantIdentifiers;
-
-  return buildAtLoc(loc, t.variableDeclaration, "const", [
-    buildAtLoc(loc, t.variableDeclarator, arrayPattern)
-  ]);
-}
-
-var lscNodesToBabelNodes = {
-  ForInArrayStatement: function(node) {
-    node.type = "ForOfStatement";
-    node.left = toPattern([node.idx, node.elem]);
-    node.right = node.array;
-  },
-  ForInObjectStatement: function(node) {
-    node.type = "ForOfStatement";
-    node.left = toPattern([node.key, node.val]);
-    node.right = node.object;
-  },
-  ArrayComprehension: function(node) {
-    node.type = "ArrayExpression";
-    node.elements = [
-      node.loop,
-    ];
-  },
-  ObjectComprehension: function(node) {
-    node.type = "ObjectExpression";
-    const prop = cloneDeep(node);
-    prop.type = "ObjectProperty";
-    prop.key =
-      node.loop.idx ||
-      node.loop.key ||
-      node.loop.elem ||
-      node.loop.val ||
-      node.loop.left && (
-        node.loop.left.type === "Identifier"
-          ? node.loop.left
-          : node.loop.left.declarations[0].id
-      ) ||
-      node.loop.init && node.loop.init.declarations[0].id ||
-      null;
-    prop.value = node.loop;
-
-    node.properties = [
-      prop,
-    ];
-  },
-  TildeCallExpression: function(node) {
-    node.type = "CallExpression";
-    node.callee = node.right;
-    node.arguments = [node.left].concat(node.arguments);
-  },
-  NamedArrowDeclaration: function(node) {
-    node.type = "FunctionDeclaration";
-  },
-  NamedArrowExpression: function(node) {
-    node.type = "FunctionExpression";
-  },
-  NamedArrowMemberExpression: function(node) {
-    node.type = "AssignmentExpression";
-
-    node.left = node;
-    node.left.type = "MemberExpression";
-    node.left.object = node.object;
-    node.left.property = node.id;
-
-    node.right = node;
-    node.right.type = "FunctionExpression";
-  },
-  IfExpression: function(node) {
-    node.type = "ConditionalExpression";
-  },
-  SafeAwaitExpression: function(node) {
-    node.type = "AwaitExpression";
-  },
-  SafeMemberExpression: function(node) {
-    node.type = "MemberExpression";
-  },
-  ExistentialExpression: function(node) {
-    const arg = node.argument;
-    delete node.argument;
-    Object.assign(node, arg);
-  },
-  MatchExpression: function(node, path) {
-    match.transformMatchExpression(path, false);
-  },
-  MatchStatement: function(node, path) {
-    match.transformMatchStatement(path, false);
-  }
-};
-
-function isLightscriptNode(node) {
-  return !!lscNodesToBabelNodes[node.type];
-}
-
-function transformLightscriptNode(node, path) {
-  return lscNodesToBabelNodes[node.type](node, path);
-}
-
 function isForInOfShorthand(node) {
   return (
     (node.type === "ForOfStatement" || node.type === "ForInStatement") &&
@@ -168,15 +51,16 @@ function transformAutoConstFor(node) {
 }
 
 var astTransformVisitor = {
-  noScope: true,
   enter (path) {
     var node = path.node;
+    if (node.start == null || node.end == null || node.loc == null) {
+      console.log("Unmapped node of type", node.type, " at ", path.getPathLocation());
+      node.start = 0; node.end = 1;
+      node.loc = { start: { line: 1, column: 0 }, end: { line: 1, column: 1 } };
+    }
 
     node.range = [node.start, node.end];
-
-    if (isLightscriptNode(node)) {
-      transformLightscriptNode(node, path);
-    }
+    node = path.node;
 
     // auto-const for for-in/for-of
     if (isForInOfShorthand(node)) {

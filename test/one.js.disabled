@@ -1,0 +1,72 @@
+/*eslint-env mocha*/
+"use strict";
+var eslint = require("eslint");
+var unpad = require("../utils/unpad");
+
+function verifyAndAssertMessages(code, rules, expectedMessages, sourceType, overrideConfig) {
+  var config = {
+    parser: require.resolve(".."),
+    rules,
+    env: {
+      node: true,
+      es6: true
+    },
+    parserOptions: {
+      ecmaVersion: 8,
+      ecmaFeatures: {
+        jsx: true,
+        experimentalObjectRestSpread: true,
+        globalReturn: true
+      },
+      sourceType
+    }
+  };
+
+  if (overrideConfig) {
+    for (var key in overrideConfig) {
+      config[key] = overrideConfig[key];
+    }
+  }
+
+  var messages = eslint.linter.verify(code, config);
+
+  if (messages.length !== expectedMessages.length) {
+    throw new Error(`Expected ${expectedMessages.length} message(s), got ${messages.length} ${JSON.stringify(messages)}`);
+  }
+
+  messages.forEach((message, i) => {
+    // strip code frame
+    var messageText = (!message.ruleId && /\n\n/.test(message.message))
+      ? message.message.split("\n\n")[0]
+      : message.message;
+
+    var formatedMessage = `${message.line}:${message.column} ${messageText}${(message.ruleId ? ` ${message.ruleId}` : "")}`;
+    if (formatedMessage !== expectedMessages[i]) {
+      throw new Error(
+        unpad(`
+          Message ${i} does not match:
+          Expected: ${expectedMessages[i]}
+          Actual:   ${formatedMessage}
+        `)
+      );
+    }
+  });
+}
+
+describe("verify", () => {
+  describe("lightscript", () => {
+    //////////// single fixture
+    it("no-unexpected-multiline false positive", () => {
+      verifyAndAssertMessages(
+        unpad(`
+[for idx i, elem e in arr:
+  e
+]
+        `),
+        { "no-unexpected-multiline": 1 },
+        []
+      );
+    });
+    //////////// single fixture
+  });
+});

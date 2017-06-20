@@ -14,27 +14,25 @@
   "dependencies": {
     "@oigroup/babel-plugin-lightscript-self-host": "1.1.0",
     "@oigroup/babylon-lightscript-self-host": "1.1.0",
-    "@oigroup/lightscript-ast-transforms": "1.1.0",
     "babel-code-frame": "^6.16.0",
     "babel-core": "^6.24.0",
     "babel-traverse": "^6.15.0",
     "babel-types": "^6.15.0",
     "babylon": "^6.13.0",
     "lodash": "^4.17.4",
-    "lodash.pickby": "^4.6.0",
-    "ast-loc-utils": "^1.0.0"
+    "lodash.pickby": "^4.6.0"
   },
   "scripts": {
     "bootstrap": "git submodule update --init && cd eslint && npm install",
     "eslint": "cd eslint && mocha -c tests/lib/rules/*.js -r ../eslint-tester.js",
     "test": "npm run lint && npm run test-only",
     "test-only": "mocha",
+    "test:debug": "node --inspect --debug-brk node_modules/.bin/_mocha",
     "lint": "eslint index.js babylon-to-espree test",
     "fix": "eslint index.js babylon-to-espree test --fix",
     "preversion": "npm test",
     "changelog": "git log `git describe --tags --abbrev=0`..HEAD --pretty=format:' * %s (%an)' | grep -v 'Merge pull request'"
   },
-  "author": "Alex Rattray <rattray.alex@gmail.com>",
   "homepage": "http://lightscript.org",
   "license": "MIT",
   "engines": {

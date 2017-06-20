@@ -485,7 +485,7 @@ describe("babylon-to-esprima", () => {
     it("SpreadOperator", () => {
       parseAndAssertSame("var a = { b, ...c }");
       parseAndAssertSame("var a = [ a, ...b ]");
-      parseAndAssertSame("var a = sum(...b)");
+      parseAndAssertSame("var a = summa(...b)");
     });
 
     it("Async/Await", () => {

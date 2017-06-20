@@ -4,9 +4,9 @@ var cloneDeep       = require("lodash/cloneDeep");
 var Module          = require("module");
 var path            = require("path");
 var jsParse         = require("babylon").parse;
-var lscParse        = require("@oigroup/babylon-lightscript-self-host").parse;
 var babel           = require("babel-core");
 var lscPlugin       = require("@oigroup/babel-plugin-lightscript-self-host");
+var lscConfig       = require("@oigroup/babel-plugin-lightscript-self-host/lib/config");
 var t               = require("babel-types");
 var tt              = require("@oigroup/babylon-lightscript-self-host").tokTypes;
 var traverse        = require("babel-traverse").default;
@@ -345,6 +345,57 @@ function monkeypatch() {
       this.close(node);
     }
   };
+
+  // monkeypatch eslint/tokenstore
+  var ts = getModule(eslintMod, "./token-store");
+  ts.prototype.getTokenAfter = returnNonceTokenPatch(ts.prototype.getTokenAfter);
+  ts.prototype.getTokenBefore = returnNonceTokenPatch(ts.prototype.getTokenBefore);
+  ts.prototype.getFirstToken = returnNonceTokenPatch(ts.prototype.getFirstToken);
+  ts.prototype.getLastToken = returnNonceTokenPatch(ts.prototype.getLastToken);
+
+  // monkeypatch rules
+  var rules = getModule(eslintMod, "./rules");
+  var _get = rules.get;
+  rules.get = function get(ruleId) {
+    // disable no-unexpected-multiline, lsc compiler deals with this
+    if (ruleId === "no-unexpected-multiline") {
+      return function() { return {}; };
+    } else {
+      return _get.call(rules, ruleId);
+    }
+  };
+}
+
+function createNonceToken() {
+  return {
+    type: "Nonce",
+    start: 0,
+    end: 1,
+    range: [0, 1],
+    loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 1 } }
+  };
+}
+
+function returnNonceTokenPatch(orig) {
+  return function(node, options) {
+    if (!node || node.type === "Nonce") return createNonceToken();
+    var tok = orig.call(this, node, options);
+    if (tok === null) return createNonceToken(); else return tok;
+  };
+}
+
+function getModule(baseMod, path) {
+  var loc;
+  try {
+    loc = Module._resolveFilename(path, baseMod);
+  } catch (err) {
+    throw new ReferenceError("couldn't resolve " + path);
+  }
+  var mod = require(loc);
+  if (mod.__esModule) {
+    mod = mod.default;
+  }
+  return mod;
 }
 
 exports.parse = function (code, options) {
@@ -399,13 +450,32 @@ exports.parseNoPatch = function (code, options) {
   var ast;
   try {
     if (useLsc) {
-      opts.plugins.unshift("lightscript");
-      ast = lscParse(code, opts);
+      // TODO: use babel-config to get this stuff
+      const lscOpts = {
+        existential: true,
+        safeCall: true,
+        bangCall: true,
+        flippedImports: true,
+        noEnforcedSubscriptIndentation: true,
+        enhancedComprehension: true,
+        __linter: true
+      };
+
+      const parserOpts = lscConfig.getParserOpts(lscOpts);
+      parserOpts.sourceType = options.sourceType;
+      parserOpts.allowImportExportEverywhere = options.allowImportExportEverywhere;
+      parserOpts.allowReturnOutsideFunction = true;
+      parserOpts.allowSuperOutsideMethod = true;
+
+      ast = parserOpts.parser(code, parserOpts);
+      // ast = lscParse(code, parserOpts);
       // run it through babel-plugin-lightscript to throw errors
-      babel.transformFromAst(cloneDeep(ast), code, {
+      const { ast: nextAst } = babel.transformFromAst(cloneDeep(ast), code, {
         code: false,
-        plugins: [lscPlugin],
+        plugins: [[lscPlugin, lscOpts]],
       });
+      nextAst.tokens = ast.tokens;
+      ast = nextAst;
     } else {
       ast = jsParse(code, opts);
     }

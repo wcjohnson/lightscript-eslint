@@ -87,16 +87,24 @@ describe("verify", () => {
       );
     });
 
+    it("assign arrow to var", () => {
+      verifyAndAssertMessages(
+        "a = b -> b; a",
+        { "no-undef": 2, "no-unused-vars": 2 },
+        []
+      );
+    });
+
     it("ForInArrayStatement", () => {
       verifyAndAssertMessages(
-        "for idx i, elem x in []: i, x",
+        "for idx i, elem x in []: (i, x)",
         { "no-undef": 2 },
         []
       );
     });
     it("ForInArrayStatement destructure", () => {
       verifyAndAssertMessages(
-        "for idx i, elem { a, b } in []: i, a, b",
+        "for idx i, elem { a, b } in []: (i, a, b)",
         { "no-undef": 2 },
         []
       );
@@ -110,7 +118,7 @@ describe("verify", () => {
     });
     it("ForInObjectStatement", () => {
       verifyAndAssertMessages(
-        "for key k, val v in {}: k, v",
+        "for key k, val v in {}: (k, v)",
         { "no-undef": 2 },
         []
       );
@@ -129,9 +137,20 @@ describe("verify", () => {
         []
       );
     });
+
+    it("IfExpression", () => {
+      verifyAndAssertMessages(
+        unpad(`
+y = if d: e
+x = if a: b else: c
+        `),
+        {},
+        []
+      );
+    });
     it("ObjectComprehension", () => {
       verifyAndAssertMessages(
-        "{for idx i, elem x in arr: i, x}",
+        "{for idx i, elem x in arr: (i, x)}",
         {},
         []
       );
@@ -204,6 +223,14 @@ describe("verify", () => {
       );
     });
 
+    it("SafeCallExpression", () => {
+      verifyAndAssertMessages(
+        "a?(b, c)",
+        {},
+        []
+      );
+    });
+
     it("tilde-call uses variable", () => {
       verifyAndAssertMessages(
         "x() -> 1; 2~x()",
@@ -217,8 +244,8 @@ describe("verify", () => {
         unpad(`
 match 1 {
   | 1: true
-  | 2 with (x) -> x
-  | 3 with y: y
+  | 2 with { x }: x
+  | 3 as { y } if y > 2: y
   | else: false
 }
         `),
@@ -232,8 +259,8 @@ match 1 {
         unpad(`
 z = match 1 {
   | 1: true
-  | 2 with (x) -> x
-  | 3 with y: y
+  | 2 with { x }: x
+  | 3 as { y } if y > 2: y
   | else: false
 }
         `),
@@ -242,6 +269,122 @@ z = match 1 {
       );
     });
 
+    it("crash no-unexpected-multiline", () => {
+      verifyAndAssertMessages(
+        unpad(`
+a = b -> c
+        `),
+        { "arrow-spacing": 1 },
+        []
+      );
+    });
+
+    it("crash 2", () => {
+      verifyAndAssertMessages(
+        unpad(`
+x = 3
+
+Predicate() -
+
+match x:
+  | ~Predicate(): x
+          `),
+        { "no-unexpected-multiline": 1 },
+        []
+      );
+    });
+
+    it("crash regex-linting", () => {
+      verifyAndAssertMessages(
+        unpad(`
+// comment
+import { ReduxComponent, action, selector } from 'redux-components'
+{ assign } = Object
+
+initialState = { compiler: 'latest' }
+
+export default class Config extends ReduxComponent:
+  static verbs = ['SET_COMPILER', 'SET_FEATURES', 'SET_PLUGINS', 'SET_OPTIONS']
+
+  reducer(state = initialState, action) ->
+    match action.type:
+      | this.SET_COMPILER: ({}~assign(state, { compiler: action.payload }))
+      | this.SET_FEATURES: ({}~assign(state, { features: action.payload }))
+      | this.SET_PLUGINS: ({}~assign(state, { plugins: action.payload }))
+      | this.SET_OPTIONS: ({}~assign(state, { options: action.payload }))
+      | else: state
+
+  @action({isDispatcher: true})
+  setCompiler(value) ->
+    ({ type: this.SET_COMPILER, payload: value })
+
+  @action({isDispatcher: true})
+  setPlugins(value) ->
+    ({ type: this.SET_PLUGINS, payload: value })
+
+  @action({isDispatcher: true})
+  setFeatures(value) ->
+    ({ type: this.SET_FEATURES, payload: value })
+
+  @action({isDispatcher: true})
+  setOptions(value) ->
+    ({ type: this.SET_OPTIONS, payload: value })
+
+  @selector({isObservable: true})
+  get(state) -> state
+        `),
+        { "no-empty-character-class": 1, "no-regex-spaces": 1 },
+        []
+      );
+    });
+
+    it("crash no-extra-semi", () => {
+      verifyAndAssertMessages(
+        unpad(`
+class C:
+  get(state) -> state
+        `),
+        { "no-extra-semi": 1 },
+        []
+      );
+    });
+
+    it("for idx unused", () => {
+      verifyAndAssertMessages(
+        unpad(`
+for idx i, elem e in arr:
+  e
+        `),
+        { "no-unused-vars": 1 },
+        ["2:9 'i' is assigned a value but never used. no-unused-vars"]
+      );
+    });
+
+    it("no-unexpected-multiline false positive", () => {
+      verifyAndAssertMessages(
+        unpad(`
+[for idx i, elem e in arr:
+  e
+]
+        `),
+        { "no-unexpected-multiline": 1 },
+        []
+      );
+    });
+
+    it("unmapped nodes 1", () => {
+      verifyAndAssertMessages(
+        unpad(`
+TranspiledOutput = enhance(TranspiledOutput(props) ->
+  code = props.compiled?.js or props.compiled?.errorMessage
+)
+        `),
+        {},
+        []
+      );
+    });
+
+    //////////// end lsc tests
   });
 
   it("arrow function support (issue #1)", () => {
