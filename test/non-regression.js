@@ -360,6 +360,18 @@ for idx i, elem e in arr:
       );
     });
 
+    it("no-unexpected-multiline false positive", () => {
+      verifyAndAssertMessages(
+        unpad(`
+[for idx i, elem e in arr:
+  e
+]
+        `),
+        { "no-unexpected-multiline": 1 },
+        []
+      );
+    });
+
     //////////// end lsc tests
   });
 

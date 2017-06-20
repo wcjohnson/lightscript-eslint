@@ -347,21 +347,23 @@ function monkeypatch() {
   };
 
   // monkeypatch eslint/tokenstore
-  var tsLoc;
-  try {
-    tsLoc = Module._resolveFilename("./token-store", eslintMod);
-  } catch (err) {
-    throw new ReferenceError("couldn't resolve token-store");
-  }
-  //var tsMod = createModule(tsLoc);
-  var ts = require(tsLoc);
-  if (ts.__esModule) {
-    ts = ts.default;
-  }
+  var ts = getModule(eslintMod, "./token-store");
   ts.prototype.getTokenAfter = returnNonceTokenPatch(ts.prototype.getTokenAfter);
   ts.prototype.getTokenBefore = returnNonceTokenPatch(ts.prototype.getTokenBefore);
   ts.prototype.getFirstToken = returnNonceTokenPatch(ts.prototype.getFirstToken);
   ts.prototype.getLastToken = returnNonceTokenPatch(ts.prototype.getLastToken);
+
+  // monkeypatch rules
+  var rules = getModule(eslintMod, "./rules");
+  var _get = rules.get;
+  rules.get = function get(ruleId) {
+    // disable no-unexpected-multiline, lsc compiler deals with this
+    if (ruleId === "no-unexpected-multiline") {
+      return function() { return {}; };
+    } else {
+      return _get.call(rules, ruleId);
+    }
+  };
 }
 
 function createNonceToken() {
@@ -380,6 +382,20 @@ function returnNonceTokenPatch(orig) {
     var tok = orig.call(this, node, options);
     if (tok === null) return createNonceToken(); else return tok;
   };
+}
+
+function getModule(baseMod, path) {
+  var loc;
+  try {
+    loc = Module._resolveFilename(path, baseMod);
+  } catch (err) {
+    throw new ReferenceError("couldn't resolve " + path);
+  }
+  var mod = require(loc);
+  if (mod.__esModule) {
+    mod = mod.default;
+  }
+  return mod;
 }
 
 exports.parse = function (code, options) {
