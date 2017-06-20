@@ -33,7 +33,6 @@
     "preversion": "npm test",
     "changelog": "git log `git describe --tags --abbrev=0`..HEAD --pretty=format:' * %s (%an)' | grep -v 'Merge pull request'"
   },
-  "author": "Alex Rattray <rattray.alex@gmail.com>",
   "homepage": "http://lightscript.org",
   "license": "MIT",
   "engines": {
