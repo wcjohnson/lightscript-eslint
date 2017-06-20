@@ -345,6 +345,41 @@ function monkeypatch() {
       this.close(node);
     }
   };
+
+  // monkeypatch eslint/tokenstore
+  var tsLoc;
+  try {
+    tsLoc = Module._resolveFilename("./token-store", eslintMod);
+  } catch (err) {
+    throw new ReferenceError("couldn't resolve token-store");
+  }
+  //var tsMod = createModule(tsLoc);
+  var ts = require(tsLoc);
+  if (ts.__esModule) {
+    ts = ts.default;
+  }
+  ts.prototype.getTokenAfter = returnNonceTokenPatch(ts.prototype.getTokenAfter);
+  ts.prototype.getTokenBefore = returnNonceTokenPatch(ts.prototype.getTokenBefore);
+  ts.prototype.getFirstToken = returnNonceTokenPatch(ts.prototype.getFirstToken);
+  ts.prototype.getLastToken = returnNonceTokenPatch(ts.prototype.getLastToken);
+}
+
+function createNonceToken() {
+  return {
+    type: "Nonce",
+    start: 0,
+    end: 1,
+    range: [0, 1],
+    loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 1 } }
+  };
+}
+
+function returnNonceTokenPatch(orig) {
+  return function(node, options) {
+    if (!node || node.type === "Nonce") return createNonceToken();
+    var tok = orig.call(this, node, options);
+    if (tok === null) return createNonceToken(); else return tok;
+  };
 }
 
 exports.parse = function (code, options) {

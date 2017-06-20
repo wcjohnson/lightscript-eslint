@@ -280,9 +280,8 @@ a = b -> c
     });
 
     it("crash 2", () => {
-      try {
-        verifyAndAssertMessages(
-          unpad(`
+      verifyAndAssertMessages(
+        unpad(`
 x = 3
 
 Predicate() -
@@ -290,12 +289,9 @@ Predicate() -
 match x:
   | ~Predicate(): x
           `),
-          { "no-unexpected-multiline": 1 },
-          []
-        );
-      } catch (err) {
-        console.log("!!!!!!!!!!!!!!!!! TODO: FIX THIS CRASH");
-      }
+        { "no-unexpected-multiline": 1 },
+        []
+      );
     });
 
     it("crash regex-linting", () => {
@@ -338,6 +334,17 @@ export default class Config extends ReduxComponent:
   get(state) -> state
         `),
         { "no-empty-character-class": 1, "no-regex-spaces": 1 },
+        []
+      );
+    });
+
+    it("crash no-extra-semi", () => {
+      verifyAndAssertMessages(
+        unpad(`
+class C:
+  get(state) -> state
+        `),
+        { "no-extra-semi": 1 },
         []
       );
     });
