@@ -372,6 +372,18 @@ for idx i, elem e in arr:
       );
     });
 
+    it("unmapped nodes 1", () => {
+      verifyAndAssertMessages(
+        unpad(`
+TranspiledOutput = enhance(TranspiledOutput(props) ->
+  code = props.compiled?.js or props.compiled?.errorMessage
+)
+        `),
+        {},
+        []
+      );
+    });
+
     //////////// end lsc tests
   });
 
