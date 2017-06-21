@@ -384,6 +384,17 @@ TranspiledOutput = enhance(TranspiledOutput(props) ->
       );
     });
 
+    it("false positive no-unused-vars", () => {
+      verifyAndAssertMessages(
+        unpad(`
+match x:
+  | with [a] if a > 2: true
+        `),
+        { "no-unused-vars": 2 },
+        []
+      );
+    });
+
     //////////// end lsc tests
   });
 
