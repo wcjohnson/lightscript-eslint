@@ -1,6 +1,5 @@
 var babylonToEspree = require("./babylon-to-espree");
 var pick            = require("lodash.pickby");
-var cloneDeep       = require("lodash/cloneDeep");
 var isEmpty         = require("lodash/isEmpty");
 var Module          = require("module");
 var path            = require("path");
@@ -478,7 +477,7 @@ exports.parseNoPatch = function (code, options) {
       ast = parserOpts.parser(code, parserOpts);
       // ast = lscParse(code, parserOpts);
       // run it through babel-plugin-lightscript to throw errors
-      const { ast: nextAst } = babel.transformFromAst(cloneDeep(ast), code, {
+      const { ast: nextAst } = babel.transformFromAst(ast, code, {
         code: false,
         plugins: [[lscPlugin, configOpts]],
       });
