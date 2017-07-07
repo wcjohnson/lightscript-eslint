@@ -395,6 +395,18 @@ match x:
       );
     });
 
+    it("config directives", () => {
+      verifyAndAssertMessages(
+        unpad(`
+'use @oigroup/lightscript'
+a
+.b
+        `),
+        {},
+        ["4:1 Parsing error: Indentation required."]
+      );
+    });
+
     //////////// end lsc tests
   });
 

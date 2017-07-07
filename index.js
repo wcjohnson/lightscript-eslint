@@ -1,6 +1,7 @@
 var babylonToEspree = require("./babylon-to-espree");
 var pick            = require("lodash.pickby");
 var cloneDeep       = require("lodash/cloneDeep");
+var isEmpty         = require("lodash/isEmpty");
 var Module          = require("module");
 var path            = require("path");
 var jsParse         = require("babylon").parse;
@@ -444,24 +445,31 @@ exports.parseNoPatch = function (code, options) {
     ]
   };
 
+  // TODO: centralize this in plugin-lightscript
+  // Should be exported methods to analyze file path, directives, shebangs etc
+  // and come up with all this stuff.
   var filePath = options.filePath;
-  var useLsc = (!filePath || /\.(lsc|lsx)/.test(filePath) || filePath === "unknown");
+  var configOpts = lscConfig.parseConfigurationDirectives(code);
+  var useLsc = (configOpts.isLightScript || !filePath || /\.(lsc|lsx)/.test(filePath) || filePath === "unknown");
 
   var ast;
   try {
     if (useLsc) {
-      // TODO: use babel-config to get this stuff
-      const lscOpts = {
-        existential: true,
-        safeCall: true,
-        bangCall: true,
-        flippedImports: true,
-        noEnforcedSubscriptIndentation: true,
-        enhancedComprehension: true,
-        __linter: true
-      };
+      if (isEmpty(configOpts)) {
+        configOpts = {
+          existential: true,
+          safeCall: true,
+          bangCall: true,
+          flippedImports: true,
+          noEnforcedSubscriptIndentation: true,
+          enhancedComprehension: true,
+          __linter: true
+        };
+      } else {
+        configOpts.__linter = true;
+      }
 
-      const parserOpts = lscConfig.getParserOpts(lscOpts);
+      const parserOpts = lscConfig.getParserOpts(configOpts);
       parserOpts.sourceType = options.sourceType;
       parserOpts.allowImportExportEverywhere = options.allowImportExportEverywhere;
       parserOpts.allowReturnOutsideFunction = true;
@@ -472,7 +480,7 @@ exports.parseNoPatch = function (code, options) {
       // run it through babel-plugin-lightscript to throw errors
       const { ast: nextAst } = babel.transformFromAst(cloneDeep(ast), code, {
         code: false,
-        plugins: [[lscPlugin, lscOpts]],
+        plugins: [[lscPlugin, configOpts]],
       });
       nextAst.tokens = ast.tokens;
       ast = nextAst;
