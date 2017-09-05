@@ -410,7 +410,8 @@ a
     it("placeholder args", () => {
       verifyAndAssertMessages(
         unpad(`
-x = -> [_ + _1, ..._]
+x = -> [_, ..._]
+y = -> [_0, ..._]
         `),
         { "no-undef": 2 },
         []
