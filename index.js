@@ -447,6 +447,7 @@ exports.parseNoPatch = function (code, options) {
   // TODO: centralize this in plugin-lightscript
   // Should be exported methods to analyze file path, directives, shebangs etc
   // and come up with all this stuff.
+  // (This setup step should also read .babelrc)
   var filePath = options.filePath;
   var configOpts = lscConfig.parseConfigurationDirectives(code);
   var useLsc = (configOpts.isLightScript || !filePath || /\.(lsc|lsx)/.test(filePath) || filePath === "unknown");
@@ -462,6 +463,8 @@ exports.parseNoPatch = function (code, options) {
           flippedImports: true,
           noEnforcedSubscriptIndentation: true,
           enhancedComprehension: true,
+          placeholderArgs: true,
+          pipeCall: true,
           __linter: true
         };
       } else {

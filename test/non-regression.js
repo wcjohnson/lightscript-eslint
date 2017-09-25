@@ -407,6 +407,27 @@ a
       );
     });
 
+    it("placeholder args", () => {
+      verifyAndAssertMessages(
+        unpad(`
+x = -> [_, ..._]
+y = -> [_0, ..._]
+        `),
+        { "no-undef": 2 },
+        []
+      );
+    });
+
+    it("pipe operator", () => {
+      verifyAndAssertMessages(
+        unpad(`
+1 |> (x -> x) |> (y -> y)
+        `),
+        {},
+        []
+      );
+    });
+
     //////////// end lsc tests
   });
 
