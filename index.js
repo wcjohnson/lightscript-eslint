@@ -458,8 +458,6 @@ exports.parseNoPatch = function (code, options) {
       if (isEmpty(configOpts)) {
         configOpts = {
           existential: true,
-          safeCall: true,
-          bangCall: true,
           flippedImports: true,
           noEnforcedSubscriptIndentation: true,
           enhancedComprehension: true,
