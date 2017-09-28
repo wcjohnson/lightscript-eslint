@@ -54,7 +54,7 @@ var astTransformVisitor = {
   enter (path) {
     var node = path.node;
     if (node.start == null || node.end == null || node.loc == null) {
-      console.log("Unmapped node of type", node.type, " at ", path.getPathLocation());
+      //console.log("Unmapped node of type", node.type, " at ", path.getPathLocation());
       node.start = 0; node.end = 1;
       node.loc = { start: { line: 1, column: 0 }, end: { line: 1, column: 1 } };
     }
