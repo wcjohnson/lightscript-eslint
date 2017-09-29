@@ -132,7 +132,7 @@ describe("verify", () => {
     });
     it("ArrayComprehension", () => {
       verifyAndAssertMessages(
-        "[for const x of arr: x]",
+        "[...for const x of arr: x]",
         {},
         []
       );
@@ -150,7 +150,7 @@ x = if a: b else: c
     });
     it("ObjectComprehension", () => {
       verifyAndAssertMessages(
-        "{for idx i, elem x in arr: (i, x)}",
+        "{...for idx i, elem x in arr: ({[i]: x})}",
         {},
         []
       );
@@ -363,7 +363,7 @@ for idx i, elem e in arr:
     it("no-unexpected-multiline false positive", () => {
       verifyAndAssertMessages(
         unpad(`
-[for idx i, elem e in arr:
+[...for idx i, elem e in arr:
   e
 ]
         `),
