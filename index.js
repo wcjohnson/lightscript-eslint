@@ -460,7 +460,7 @@ exports.parseNoPatch = function (code, options) {
           existential: true,
           flippedImports: true,
           noEnforcedSubscriptIndentation: true,
-          enhancedComprehension: true,
+          safeCall: true,
           placeholderArgs: true,
           pipeCall: true,
           __linter: true

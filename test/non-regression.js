@@ -759,7 +759,8 @@ y = -> [_0, ..._]
         unpad(`
           import type Promise from 'bluebird';
           type Operation = () => Promise;
-          x: Operation;
+          let x = null;
+          (x: Operation);
         `),
         { "no-unused-vars": 1, "no-undef": 1 },
         []
