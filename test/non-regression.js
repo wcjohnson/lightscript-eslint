@@ -132,7 +132,7 @@ describe("verify", () => {
     });
     it("ArrayComprehension", () => {
       verifyAndAssertMessages(
-        "[for const x of arr: x]",
+        "[...for const x of arr: x]",
         {},
         []
       );
@@ -150,7 +150,7 @@ x = if a: b else: c
     });
     it("ObjectComprehension", () => {
       verifyAndAssertMessages(
-        "{for idx i, elem x in arr: (i, x)}",
+        "{...for idx i, elem x in arr: ({[i]: x})}",
         {},
         []
       );
@@ -363,7 +363,7 @@ for idx i, elem e in arr:
     it("no-unexpected-multiline false positive", () => {
       verifyAndAssertMessages(
         unpad(`
-[for idx i, elem e in arr:
+[...for idx i, elem e in arr:
   e
 ]
         `),
@@ -378,6 +378,50 @@ for idx i, elem e in arr:
 TranspiledOutput = enhance(TranspiledOutput(props) ->
   code = props.compiled?.js or props.compiled?.errorMessage
 )
+        `),
+        {},
+        []
+      );
+    });
+
+    it("false positive no-unused-vars", () => {
+      verifyAndAssertMessages(
+        unpad(`
+match x:
+  | with [a] if a > 2: true
+        `),
+        { "no-unused-vars": 2 },
+        []
+      );
+    });
+
+    it("config directives", () => {
+      verifyAndAssertMessages(
+        unpad(`
+'use @oigroup/lightscript'
+a
+.b
+        `),
+        {},
+        ["4:1 Parsing error: Indentation required."]
+      );
+    });
+
+    it("placeholder args", () => {
+      verifyAndAssertMessages(
+        unpad(`
+x = -> [_, ..._]
+y = -> [_0, ..._]
+        `),
+        { "no-undef": 2 },
+        []
+      );
+    });
+
+    it("pipe operator", () => {
+      verifyAndAssertMessages(
+        unpad(`
+1 |> (x -> x) |> (y -> y)
         `),
         {},
         []
@@ -715,7 +759,8 @@ TranspiledOutput = enhance(TranspiledOutput(props) ->
         unpad(`
           import type Promise from 'bluebird';
           type Operation = () => Promise;
-          x: Operation;
+          let x = null;
+          (x: Operation);
         `),
         { "no-unused-vars": 1, "no-undef": 1 },
         []

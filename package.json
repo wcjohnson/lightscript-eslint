@@ -1,6 +1,6 @@
 {
   "name": "@oigroup/lightscript-eslint-self-host",
-  "version": "2.0.0",
+  "version": "3.0.0-pre.0",
   "description": "LightScript-ESLint for self-hosting the LightScript toolchain",
   "main": "index.js",
   "files": [
@@ -12,13 +12,13 @@
     "url": "https://github.com/lightscript/lightscript-eslint.git"
   },
   "dependencies": {
-    "@oigroup/babel-plugin-lightscript-self-host": "2.0.0",
-    "@oigroup/babylon-lightscript-self-host": "2.0.0",
-    "babel-code-frame": "^6.16.0",
-    "babel-core": "^6.24.0",
-    "babel-traverse": "^6.15.0",
-    "babel-types": "^6.15.0",
-    "babylon": "^6.13.0",
+    "@oigroup/babel-plugin-lightscript-self-host": "3.0.0-pre.0",
+    "@oigroup/babylon-lightscript-self-host": "3.0.0-pre.0",
+    "babel-code-frame": "^6.22.0",
+    "babel-core": "^6.25.0",
+    "babel-traverse": "^6.25.0",
+    "babel-types": "^6.25.0",
+    "babylon": "^6.17.4",
     "lodash": "^4.17.4",
     "lodash.pickby": "^4.6.0"
   },
