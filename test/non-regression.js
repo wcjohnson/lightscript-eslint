@@ -418,16 +418,6 @@ y = -> [_0, ..._]
       );
     });
 
-    it("pipe operator", () => {
-      verifyAndAssertMessages(
-        unpad(`
-1 |> (x -> x) |> (y -> y)
-        `),
-        {},
-        []
-      );
-    });
-
     //////////// end lsc tests
   });
 

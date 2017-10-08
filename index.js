@@ -7,6 +7,7 @@ var jsParse         = require("babylon").parse;
 var babel           = require("babel-core");
 var lscPlugin       = require("@oigroup/babel-plugin-lightscript");
 var lscConfig       = require("@oigroup/babel-plugin-lightscript/lib/config");
+var parseConfigurationDirectives = require("@oigroup/babel-plugin-lightscript/lib/util/parseConfigurationDirectives");
 var t               = require("babel-types");
 var tt              = require("@oigroup/babylon-lightscript").tokTypes;
 var traverse        = require("babel-traverse").default;
@@ -449,7 +450,7 @@ exports.parseNoPatch = function (code, options) {
   // and come up with all this stuff.
   // (This setup step should also read .babelrc)
   var filePath = options.filePath;
-  var configOpts = lscConfig.parseConfigurationDirectives(code);
+  var configOpts = parseConfigurationDirectives(code);
   var useLsc = (configOpts.isLightScript || !filePath || /\.(lsc|lsx)/.test(filePath) || filePath === "unknown");
 
   var ast;
