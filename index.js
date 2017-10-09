@@ -1,17 +1,16 @@
 var babylonToEspree = require("./babylon-to-espree");
 var pick            = require("lodash.pickby");
-var isEmpty         = require("lodash/isEmpty");
 var Module          = require("module");
 var path            = require("path");
 var jsParse         = require("babylon").parse;
 var babel           = require("babel-core");
-var lscPlugin       = require("@oigroup/babel-plugin-lightscript");
-var lscConfig       = require("@oigroup/babel-plugin-lightscript/lib/config");
-var parseConfigurationDirectives = require("@oigroup/babel-plugin-lightscript/lib/util/parseConfigurationDirectives");
 var t               = require("babel-types");
-var tt              = require("@oigroup/babylon-lightscript").tokTypes;
+var tt              = require("babylon").tokTypes;
 var traverse        = require("babel-traverse").default;
 var codeFrame       = require("babel-code-frame");
+
+var lscPlugin       = require("@oigroup/babel-plugin-lightscript");
+var lscTooling      = require("@oigroup/babel-plugin-lightscript/lib/tooling");
 
 var hasPatched = false;
 var eslintOptions = {};
@@ -450,38 +449,25 @@ exports.parseNoPatch = function (code, options) {
   // and come up with all this stuff.
   // (This setup step should also read .babelrc)
   var filePath = options.filePath;
-  var configOpts = parseConfigurationDirectives(code);
-  var useLsc = (configOpts.isLightScript || !filePath || /\.(lsc|lsx)/.test(filePath) || filePath === "unknown");
+  var compilerConfig = lscTooling.getCompilerConfiguration(filePath, code, { __linter: true });
+  var useLsc = compilerConfig.isLightScript;
 
   var ast;
   try {
     if (useLsc) {
-      if (isEmpty(configOpts)) {
-        configOpts = {
-          existential: true,
-          flippedImports: true,
-          noEnforcedSubscriptIndentation: true,
-          safeCall: true,
-          placeholderArgs: true,
-          pipeCall: true,
-          __linter: true
-        };
-      } else {
-        configOpts.__linter = true;
-      }
+      tt = lscTooling.babylon.tokTypes;
 
-      const parserOpts = lscConfig.getParserOpts(configOpts);
-      parserOpts.sourceType = options.sourceType;
-      parserOpts.allowImportExportEverywhere = options.allowImportExportEverywhere;
-      parserOpts.allowReturnOutsideFunction = true;
-      parserOpts.allowSuperOutsideMethod = true;
+      ast = lscTooling.parse(compilerConfig, code, {
+        sourceType: options.sourceType,
+        allowImportExportEverywhere: options.allowImportExportEverywhere,
+        allowReturnOutsideFunction: true,
+        allowSuperOutsideMethod: true
+      });
 
-      ast = parserOpts.parser(code, parserOpts);
-      // ast = lscParse(code, parserOpts);
       // run it through babel-plugin-lightscript to throw errors
       const { ast: nextAst } = babel.transformFromAst(ast, code, {
         code: false,
-        plugins: [[lscPlugin, configOpts]],
+        plugins: [[lscPlugin, compilerConfig]],
       });
       nextAst.tokens = ast.tokens;
       ast = nextAst;

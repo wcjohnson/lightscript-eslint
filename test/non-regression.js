@@ -217,7 +217,10 @@ x = if a: b else: c
 
     it("ExistentialExpression", () => {
       verifyAndAssertMessages(
-        "x?",
+        unpad(`
+'use @oigroup/lightscript with existential'
+x?
+        `),
         {},
         []
       );
@@ -410,6 +413,7 @@ a
     it("placeholder args", () => {
       verifyAndAssertMessages(
         unpad(`
+'use @oigroup/lightscript with placeholderArgs'
 x = -> [_, ..._]
 y = -> [_0, ..._]
         `),
