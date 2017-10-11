@@ -352,6 +352,12 @@ function monkeypatch() {
   ts.prototype.getTokenBefore = returnNonceTokenPatch(ts.prototype.getTokenBefore);
   ts.prototype.getFirstToken = returnNonceTokenPatch(ts.prototype.getFirstToken);
   ts.prototype.getLastToken = returnNonceTokenPatch(ts.prototype.getLastToken);
+  var origGetFirstTokens = ts.prototype.getFirstTokens;
+  ts.prototype.getFirstTokens = function() {
+    if (!arguments[0] || arguments[0].type === "Nonce") return [createNonceToken()];
+    var toks = origGetFirstTokens.apply(this, arguments);
+    if (toks == null || toks[0] == null) return [createNonceToken()]; else return toks;
+  };
 
   // monkeypatch rules
   var rules = getModule(eslintMod, "./rules");
