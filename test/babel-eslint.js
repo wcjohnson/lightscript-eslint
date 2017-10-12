@@ -2,7 +2,7 @@ var assert      = require("assert");
 var babelEslint = require("..");
 var espree      = require("espree");
 var util        = require("util");
-var unpad       = require("../utils/unpad");
+var unpad       = require("dedent");
 
 // Checks if the source ast implements the target ast. Ignores extra keys on source ast
 function assertImplementsAST(target, source, path) {
@@ -20,6 +20,8 @@ function assertImplementsAST(target, source, path) {
   var typeB = source === null ? "null" : typeof source;
   if (typeA !== typeB) {
     error(`have different types (${typeA} !== ${typeB}) (${target} !== ${source})`);
+  } else if (typeA === "object" && ["RegExp"].indexOf(target.constructor.name) !== -1 && target.constructor.name !== source.constructor.name) {
+    error(`object have different constructors (${target.constructor.name} !== ${source.constructor.name}`);
   } else if (typeA === "object") {
     var keysTarget = Object.keys(target);
     for (var i in keysTarget) {
@@ -304,6 +306,18 @@ describe("babylon-to-esprima", () => {
 
   it("regexp", () => {
     parseAndAssertSame("/affix-top|affix-bottom|affix|[a-z]/");
+  });
+
+  it("regexp", () => {
+    parseAndAssertSame("const foo = /foo/;");
+  });
+
+  it("regexp y flag", () => {
+    parseAndAssertSame("const foo = /foo/y;");
+  });
+
+  it("regexp u flag", () => {
+    parseAndAssertSame("const foo = /foo/u;");
   });
 
   it("regexp in a template string", () => {

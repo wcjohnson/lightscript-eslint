@@ -21,8 +21,6 @@
     "lodash": "^4.17.4"
   },
   "scripts": {
-    "bootstrap": "git submodule update --init && cd eslint && npm install",
-    "eslint": "cd eslint && mocha -c tests/lib/rules/*.js -r ../eslint-tester.js",
     "test": "npm run lint && npm run test-only",
     "test-only": "mocha",
     "test:debug": "node --inspect --debug-brk node_modules/.bin/_mocha",
@@ -44,8 +42,8 @@
     "eslint": "^3.19.0",
     "eslint-config-babel": "^6.0.0",
     "eslint-plugin-babel": "^4.0.0",
-    "eslint-plugin-flowtype": "^2.20.0",
-    "espree": "^3.3.1",
+    "eslint-plugin-flowtype": "^2.30.3",
+    "espree": "^3.4.0",
     "mocha": "^3.2.0"
   }
 }
