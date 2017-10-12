@@ -285,12 +285,12 @@ a = b -> c
     it("crash 2", () => {
       verifyAndAssertMessages(
         unpad(`
-x = 3
+          x = 3
 
-Predicate() -
+          Predicate() -
 
-match x:
-  | ~Predicate(): x
+          match x:
+            | ~Predicate(): x
           `),
         { "no-unexpected-multiline": 1 },
         []
@@ -300,41 +300,41 @@ match x:
     it("crash regex-linting", () => {
       verifyAndAssertMessages(
         unpad(`
-// comment
-import { ReduxComponent, action, selector } from 'redux-components'
-{ assign } = Object
+          // comment
+          import { ReduxComponent, action, selector } from 'redux-components'
+          { assign } = Object
 
-initialState = { compiler: 'latest' }
+          initialState = { compiler: 'latest' }
 
-export default class Config extends ReduxComponent:
-  static verbs = ['SET_COMPILER', 'SET_FEATURES', 'SET_PLUGINS', 'SET_OPTIONS']
+          export default class Config extends ReduxComponent:
+            static verbs = ['SET_COMPILER', 'SET_FEATURES', 'SET_PLUGINS', 'SET_OPTIONS']
 
-  reducer(state = initialState, action) ->
-    match action.type:
-      | this.SET_COMPILER: ({}~assign(state, { compiler: action.payload }))
-      | this.SET_FEATURES: ({}~assign(state, { features: action.payload }))
-      | this.SET_PLUGINS: ({}~assign(state, { plugins: action.payload }))
-      | this.SET_OPTIONS: ({}~assign(state, { options: action.payload }))
-      | else: state
+            reducer(state = initialState, action) ->
+              match action.type:
+                | this.SET_COMPILER: ({}~assign(state, { compiler: action.payload }))
+                | this.SET_FEATURES: ({}~assign(state, { features: action.payload }))
+                | this.SET_PLUGINS: ({}~assign(state, { plugins: action.payload }))
+                | this.SET_OPTIONS: ({}~assign(state, { options: action.payload }))
+                | else: state
 
-  @action({isDispatcher: true})
-  setCompiler(value) ->
-    ({ type: this.SET_COMPILER, payload: value })
+            @action({isDispatcher: true})
+            setCompiler(value) ->
+              ({ type: this.SET_COMPILER, payload: value })
 
-  @action({isDispatcher: true})
-  setPlugins(value) ->
-    ({ type: this.SET_PLUGINS, payload: value })
+            @action({isDispatcher: true})
+            setPlugins(value) ->
+              ({ type: this.SET_PLUGINS, payload: value })
 
-  @action({isDispatcher: true})
-  setFeatures(value) ->
-    ({ type: this.SET_FEATURES, payload: value })
+            @action({isDispatcher: true})
+            setFeatures(value) ->
+              ({ type: this.SET_FEATURES, payload: value })
 
-  @action({isDispatcher: true})
-  setOptions(value) ->
-    ({ type: this.SET_OPTIONS, payload: value })
+            @action({isDispatcher: true})
+            setOptions(value) ->
+              ({ type: this.SET_OPTIONS, payload: value })
 
-  @selector({isObservable: true})
-  get(state) -> state
+            @selector({isObservable: true})
+            get(state) -> state
         `),
         { "no-empty-character-class": 1, "no-regex-spaces": 1 },
         []
@@ -344,8 +344,8 @@ export default class Config extends ReduxComponent:
     it("crash no-extra-semi", () => {
       verifyAndAssertMessages(
         unpad(`
-class C:
-  get(state) -> state
+          class C:
+            get(state) -> state
         `),
         { "no-extra-semi": 1 },
         []
@@ -355,34 +355,22 @@ class C:
     it("for idx unused", () => {
       verifyAndAssertMessages(
         unpad(`
-for idx i, elem e in arr:
-  e
+          for idx i, elem e in arr:
+            e
         `),
         { "no-unused-vars": 1 },
-        ["2:9 'i' is assigned a value but never used. no-unused-vars"]
+        ["1:9 'i' is assigned a value but never used. no-unused-vars"]
       );
     });
 
     it("no-unexpected-multiline false positive", () => {
       verifyAndAssertMessages(
         unpad(`
-[...for idx i, elem e in arr:
-  e
-]
+          [...for idx i, elem e in arr:
+            e
+          ]
         `),
         { "no-unexpected-multiline": 1 },
-        []
-      );
-    });
-
-    it("unmapped nodes 1", () => {
-      verifyAndAssertMessages(
-        unpad(`
-TranspiledOutput = enhance(TranspiledOutput(props) ->
-  code = props.compiled?.js or props.compiled?.errorMessage
-)
-        `),
-        {},
         []
       );
     });
@@ -390,8 +378,8 @@ TranspiledOutput = enhance(TranspiledOutput(props) ->
     it("false positive no-unused-vars", () => {
       verifyAndAssertMessages(
         unpad(`
-match x:
-  | with [a] if a > 2: true
+          match x:
+            | with [a] if a > 2: true
         `),
         { "no-unused-vars": 2 },
         []
@@ -401,21 +389,21 @@ match x:
     it("config directives", () => {
       verifyAndAssertMessages(
         unpad(`
-'use @oigroup/lightscript'
-a
-.b
+          'use @oigroup/lightscript'
+          a
+          .b
         `),
         {},
-        ["4:1 Parsing error: Indentation required."]
+        ["3:1 Parsing error: Indentation required."]
       );
     });
 
     it("placeholder args", () => {
       verifyAndAssertMessages(
         unpad(`
-'use @oigroup/lightscript with placeholderArgs'
-x = -> [_, ..._]
-y = -> [_0, ..._]
+          'use @oigroup/lightscript with placeholderArgs'
+          x = -> [_, ..._]
+          y = -> [_0, ..._]
         `),
         { "no-undef": 2 },
         []
