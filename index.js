@@ -370,16 +370,20 @@ function monkeypatch(modules) {
   };
 
   // monkeypatch rules
+  var emptyRule = function() { return {}; };
+  emptyRule.create = function() { return {}; };
   var rules = getModule(eslintMod, "./rules");
-  var _get = rules.get;
-  rules.get = function get(ruleId) {
+  var _get = rules.get || rules.prototype.get;
+  var nextGet = function get(ruleId) {
     // disable no-unexpected-multiline, lsc compiler deals with this
     if (ruleId === "no-unexpected-multiline") {
-      return function() { return {}; };
+      return emptyRule;
     } else {
-      return _get.call(rules, ruleId);
+      return _get.call(this || rules, ruleId);
     }
   };
+
+  if (rules.get) rules.get = nextGet; else rules.prototype.get = nextGet;
 }
 
 function createNonceToken() {
