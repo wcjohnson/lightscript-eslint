@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/lightscript/lightscript-eslint.git"
+    "url": "https://github.com/wcjohnson/lightscript-eslint.git"
   },
   "dependencies": {
     "@oigroup/babel-plugin-lightscript": "3.0.0-beta.1",
@@ -29,13 +29,13 @@
     "preversion": "npm test",
     "changelog": "git log `git describe --tags --abbrev=0`..HEAD --pretty=format:' * %s (%an)' | grep -v 'Merge pull request'"
   },
-  "homepage": "http://lightscript.org",
+  "homepage": "http://wcjohnson.github.io/lightscript",
   "license": "MIT",
   "engines": {
     "node": ">=4"
   },
   "bugs": {
-    "url": "https://github.com/lightscript/lightscript-eslint/issues"
+    "url": "https://github.com/wcjohnson/lightscript/issues"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.1",
