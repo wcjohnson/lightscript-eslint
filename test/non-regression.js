@@ -410,6 +410,20 @@ a = b -> c
       );
     });
 
+    it("no-else-return disabled", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          f() ->
+            if true:
+              { three: 3 }
+            else:
+              {}
+        `),
+        { "no-else-return": 2 },
+        []
+      );
+    });
+
     //////////// end lsc tests
   });
 

@@ -11,6 +11,11 @@ var codeFrame       = require("babel-code-frame");
 var lscPlugin       = require("@oigroup/babel-plugin-lightscript");
 var lscTooling      = require("@oigroup/babel-plugin-lightscript/lib/tooling");
 
+var lightScriptDisabledRulesTable = {
+  "no-unexpected-multiline": true,
+  "no-else-return": true
+};
+
 var hasPatched = false;
 var eslintOptions = {};
 
@@ -370,13 +375,14 @@ function monkeypatch(modules) {
   };
 
   // monkeypatch rules
+  // in eslint 4, rule getter is a class whereas it was an object in 3...
   var emptyRule = function() { return {}; };
   emptyRule.create = function() { return {}; };
   var rules = getModule(eslintMod, "./rules");
   var _get = rules.get || rules.prototype.get;
   var nextGet = function get(ruleId) {
-    // disable no-unexpected-multiline, lsc compiler deals with this
-    if (ruleId === "no-unexpected-multiline") {
+    // disable invalid or broken rules
+    if (ruleId && lightScriptDisabledRulesTable[ruleId]) {
       return emptyRule;
     } else {
       return _get.call(this || rules, ruleId);

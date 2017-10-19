@@ -33,6 +33,30 @@ Example configuration (with React):
 }
 ```
 
+When running `eslint` from the CLI, you must tell it to process LightScript file extensions:
+
+```
+$ eslint --ext .js,.lsc src
+```
+
+### Live Linting
+
+#### Visual Studio Code
+
+- Set up eslint for your project as above. Verify that eslint lints correctly from the CLI.
+- Install the `ESLint` extension for VSCode: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
+- Tell VSCode to live-lint LightScript files by adding the following entry to your VSCode options (workspace or global):
+  ```
+  "eslint.validate": ["javascript", "javascriptreact", "lightscript"]
+  ```
+
+### Broken Rules
+
+The following lint rules are either buggy, broken, or do not make sense in the context of LightScript. They are disabled at the code level and will not run even if you enable them in your configuration.
+
+- `no-unexpected-multiline`
+- `no-else-return`
+
 ### Contributing
 
 Issues: https://github.com/wcjohnson/lightscript/issues
