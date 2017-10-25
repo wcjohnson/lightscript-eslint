@@ -1,7 +1,7 @@
 /*eslint-env mocha*/
 "use strict";
 var eslint = require("eslint");
-var unpad = require("../utils/unpad");
+var unpad = require("dedent");
 
 function verifyAndAssertMessages(code, rules, expectedMessages, sourceType, overrideConfig) {
   var config = {
@@ -31,7 +31,7 @@ function verifyAndAssertMessages(code, rules, expectedMessages, sourceType, over
   var messages = eslint.linter.verify(code, config);
 
   if (messages.length !== expectedMessages.length) {
-    throw new Error(`Expected ${expectedMessages.length} message(s), got ${messages.length} ${JSON.stringify(messages)}`);
+    throw new Error(`Expected ${expectedMessages.length} message(s), got ${messages.length}\n${JSON.stringify(messages, null, 2)}`);
   }
 
   messages.forEach((message, i) => {
@@ -132,7 +132,7 @@ describe("verify", () => {
     });
     it("ArrayComprehension", () => {
       verifyAndAssertMessages(
-        "[for const x of arr: x]",
+        "[...for const x of arr: x]",
         {},
         []
       );
@@ -150,7 +150,7 @@ x = if a: b else: c
     });
     it("ObjectComprehension", () => {
       verifyAndAssertMessages(
-        "{for idx i, elem x in arr: (i, x)}",
+        "{...for idx i, elem x in arr: ({[i]: x})}",
         {},
         []
       );
@@ -217,7 +217,10 @@ x = if a: b else: c
 
     it("ExistentialExpression", () => {
       verifyAndAssertMessages(
-        "x?",
+        unpad(`
+'use @oigroup/lightscript with existential'
+x?
+        `),
         {},
         []
       );
@@ -282,12 +285,12 @@ a = b -> c
     it("crash 2", () => {
       verifyAndAssertMessages(
         unpad(`
-x = 3
+          x = 3
 
-Predicate() -
+          Predicate() -
 
-match x:
-  | ~Predicate(): x
+          match x:
+            | ~Predicate(): x
           `),
         { "no-unexpected-multiline": 1 },
         []
@@ -297,41 +300,41 @@ match x:
     it("crash regex-linting", () => {
       verifyAndAssertMessages(
         unpad(`
-// comment
-import { ReduxComponent, action, selector } from 'redux-components'
-{ assign } = Object
+          // comment
+          import { ReduxComponent, action, selector } from 'redux-components'
+          { assign } = Object
 
-initialState = { compiler: 'latest' }
+          initialState = { compiler: 'latest' }
 
-export default class Config extends ReduxComponent:
-  static verbs = ['SET_COMPILER', 'SET_FEATURES', 'SET_PLUGINS', 'SET_OPTIONS']
+          export default class Config extends ReduxComponent:
+            static verbs = ['SET_COMPILER', 'SET_FEATURES', 'SET_PLUGINS', 'SET_OPTIONS']
 
-  reducer(state = initialState, action) ->
-    match action.type:
-      | this.SET_COMPILER: ({}~assign(state, { compiler: action.payload }))
-      | this.SET_FEATURES: ({}~assign(state, { features: action.payload }))
-      | this.SET_PLUGINS: ({}~assign(state, { plugins: action.payload }))
-      | this.SET_OPTIONS: ({}~assign(state, { options: action.payload }))
-      | else: state
+            reducer(state = initialState, action) ->
+              match action.type:
+                | this.SET_COMPILER: ({}~assign(state, { compiler: action.payload }))
+                | this.SET_FEATURES: ({}~assign(state, { features: action.payload }))
+                | this.SET_PLUGINS: ({}~assign(state, { plugins: action.payload }))
+                | this.SET_OPTIONS: ({}~assign(state, { options: action.payload }))
+                | else: state
 
-  @action({isDispatcher: true})
-  setCompiler(value) ->
-    ({ type: this.SET_COMPILER, payload: value })
+            @action({isDispatcher: true})
+            setCompiler(value) ->
+              ({ type: this.SET_COMPILER, payload: value })
 
-  @action({isDispatcher: true})
-  setPlugins(value) ->
-    ({ type: this.SET_PLUGINS, payload: value })
+            @action({isDispatcher: true})
+            setPlugins(value) ->
+              ({ type: this.SET_PLUGINS, payload: value })
 
-  @action({isDispatcher: true})
-  setFeatures(value) ->
-    ({ type: this.SET_FEATURES, payload: value })
+            @action({isDispatcher: true})
+            setFeatures(value) ->
+              ({ type: this.SET_FEATURES, payload: value })
 
-  @action({isDispatcher: true})
-  setOptions(value) ->
-    ({ type: this.SET_OPTIONS, payload: value })
+            @action({isDispatcher: true})
+            setOptions(value) ->
+              ({ type: this.SET_OPTIONS, payload: value })
 
-  @selector({isObservable: true})
-  get(state) -> state
+            @selector({isObservable: true})
+            get(state) -> state
         `),
         { "no-empty-character-class": 1, "no-regex-spaces": 1 },
         []
@@ -341,8 +344,8 @@ export default class Config extends ReduxComponent:
     it("crash no-extra-semi", () => {
       verifyAndAssertMessages(
         unpad(`
-class C:
-  get(state) -> state
+          class C:
+            get(state) -> state
         `),
         { "no-extra-semi": 1 },
         []
@@ -352,34 +355,22 @@ class C:
     it("for idx unused", () => {
       verifyAndAssertMessages(
         unpad(`
-for idx i, elem e in arr:
-  e
+          for idx i, elem e in arr:
+            e
         `),
         { "no-unused-vars": 1 },
-        ["2:9 'i' is assigned a value but never used. no-unused-vars"]
+        ["1:9 'i' is assigned a value but never used. no-unused-vars"]
       );
     });
 
     it("no-unexpected-multiline false positive", () => {
       verifyAndAssertMessages(
         unpad(`
-[for idx i, elem e in arr:
-  e
-]
+          [...for idx i, elem e in arr:
+            e
+          ]
         `),
         { "no-unexpected-multiline": 1 },
-        []
-      );
-    });
-
-    it("unmapped nodes 1", () => {
-      verifyAndAssertMessages(
-        unpad(`
-TranspiledOutput = enhance(TranspiledOutput(props) ->
-  code = props.compiled?.js or props.compiled?.errorMessage
-)
-        `),
-        {},
         []
       );
     });
@@ -387,8 +378,8 @@ TranspiledOutput = enhance(TranspiledOutput(props) ->
     it("false positive no-unused-vars", () => {
       verifyAndAssertMessages(
         unpad(`
-match x:
-  | with [a] if a > 2: true
+          match x:
+            | with [a] if a > 2: true
         `),
         { "no-unused-vars": 2 },
         []
@@ -398,32 +389,37 @@ match x:
     it("config directives", () => {
       verifyAndAssertMessages(
         unpad(`
-'use @oigroup/lightscript'
-a
-.b
+          'use @oigroup/lightscript'
+          a
+          .b
         `),
         {},
-        ["4:1 Parsing error: Indentation required."]
+        ["3:1 Parsing error: Indentation required."]
       );
     });
 
     it("placeholder args", () => {
       verifyAndAssertMessages(
         unpad(`
-x = -> [_, ..._]
-y = -> [_0, ..._]
+          'use @oigroup/lightscript with placeholderArgs'
+          x = -> [_, ..._]
+          y = -> [_0, ..._]
         `),
         { "no-undef": 2 },
         []
       );
     });
 
-    it("pipe operator", () => {
+    it("no-else-return disabled", () => {
       verifyAndAssertMessages(
         unpad(`
-1 |> (x -> x) |> (y -> y)
+          f() ->
+            if true:
+              { three: 3 }
+            else:
+              {}
         `),
-        {},
+        { "no-else-return": 2 },
         []
       );
     });
@@ -604,17 +600,133 @@ y = -> [_0, ..._]
       );
     });
 
-    // TODO: fix; for lightscript
-    xit("type parameters", () => {
+    it("interface declaration", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          interface Foo {};
+          interface Bar {
+            foo: Foo,
+          };
+        `),
+        { "no-unused-vars": 1, "no-undef": 1 },
+        [ "2:11 'Bar' is defined but never used. no-unused-vars" ]
+      );
+    });
+
+    it("type parameter bounds (classes)", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          import type {Foo, Foo2} from 'foo';
+          import Base from 'base';
+          class Log<T1: Foo, T2: Foo2, T3, T4> extends Base<T3> {
+            messages: {[T1]: T2};
+          }
+          new Log();
+        `),
+        { "no-unused-vars": 1, "no-undef": 1 },
+        [ "3:34 'T4' is defined but never used. no-unused-vars" ]
+      );
+    });
+
+    it("type parameter scope (classes)", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          T;
+          class Foo<T> {}
+          T;
+          new Foo();
+        `),
+        { "no-unused-vars": 1, "no-undef": 1 },
+        [ "1:1 'T' is not defined. no-undef",
+          "2:11 'T' is defined but never used. no-unused-vars",
+          "3:1 'T' is not defined. no-undef" ]
+      );
+    });
+
+    it("type parameter bounds (interfaces)", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          import type {Foo, Foo2, Bar} from '';
+          interface Log<T1: Foo, T2: Foo2, T3, T4> extends Bar<T3> {
+            messages: {[T1]: T2};
+          }
+        `),
+        { "no-unused-vars": 1, "no-undef": 1 },
+        [ "2:11 'Log' is defined but never used. no-unused-vars",
+          "2:38 'T4' is defined but never used. no-unused-vars" ]
+      );
+    });
+
+    it("type parameter scope (interfaces)", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          T;
+          interface Foo<T> {};
+          T;
+          Foo;
+        `),
+        { "no-unused-vars": 1, "no-undef": 1 },
+        [ "1:1 'T' is not defined. no-undef",
+          "2:15 'T' is defined but never used. no-unused-vars",
+          "3:1 'T' is not defined. no-undef" ]
+      );
+    });
+
+    it("type parameter bounds (type aliases)", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          import type {Foo, Foo2, Foo3} from 'foo';
+          type Log<T1: Foo, T2: Foo2, T3> = {
+            messages: {[T1]: T2};
+            delay: Foo3;
+          };
+        `),
+        { "no-unused-vars": 1, "no-undef": 1 },
+        [ "2:6 'Log' is defined but never used. no-unused-vars",
+          "2:29 'T3' is defined but never used. no-unused-vars" ]
+      );
+    });
+
+    it("type parameter scope (type aliases)", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          T;
+          type Foo<T> = {};
+          T;
+          Foo;
+        `),
+        { "no-unused-vars": 1, "no-undef": 1 },
+        [ "1:1 'T' is not defined. no-undef",
+          "2:10 'T' is defined but never used. no-unused-vars",
+          "3:1 'T' is not defined. no-undef" ]
+      );
+    });
+
+    it("type parameter bounds (functions)", () => {
       verifyAndAssertMessages(
         unpad(`
           import type Foo from 'foo';
           import type Foo2 from 'foo';
-          function log<T1, T2>(a: T1, b: T2) { return a + b; }
-          log<Foo, Foo2>(1, 2);
+          function log<T1: Foo, T2: Foo2, T3, T4>(a: T1, b: T2): T3 { return a + b; }
+          log(1, 2);
         `),
         { "no-unused-vars": 1, "no-undef": 1 },
-        []
+        [ "3:37 'T4' is defined but never used. no-unused-vars" ]
+      );
+    });
+
+    it("type parameter scope (functions)", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          T;
+          function log<T>() {}
+          T;
+          log;
+        `),
+        { "no-unused-vars": 1, "no-undef": 1 },
+        [ "1:1 'T' is not defined. no-undef",
+          "2:14 'T' is defined but never used. no-unused-vars",
+          "3:1 'T' is not defined. no-undef" ]
       );
     });
 
@@ -759,7 +871,8 @@ y = -> [_0, ..._]
         unpad(`
           import type Promise from 'bluebird';
           type Operation = () => Promise;
-          x: Operation;
+          let x = null;
+          (x: Operation);
         `),
         { "no-unused-vars": 1, "no-undef": 1 },
         []
@@ -837,6 +950,18 @@ y = -> [_0, ..._]
         `),
         { "no-undef": 1, "no-unused-vars": 1 },
         []
+      );
+    });
+
+    it("supports type spreading", () => {
+      verifyAndAssertMessages(
+        unpad(`
+          type U = {};
+          type T = {a: number, ...U, ...V};
+        `),
+        { "no-undef": 1, "no-unused-vars": 1 },
+        [ "2:6 'T' is defined but never used. no-unused-vars",
+          "2:31 'V' is not defined. no-undef" ]
       );
     });
 

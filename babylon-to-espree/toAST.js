@@ -1,32 +1,22 @@
-var source;
+"use strict";
+
+var convertComments = require("./convertComments");
 var cloneDeep = require("lodash/cloneDeep");
 
 module.exports = function (ast, traverse, code) {
-  source = code;
+  var state = { source: code };
   ast.range = [ast.start, ast.end];
-  traverse(ast, astTransformVisitor);
+  traverse(ast, astTransformVisitor, null, state);
 };
 
-function changeToLiteral(node) {
+function changeToLiteral(node, state) {
   node.type = "Literal";
   if (!node.raw) {
     if (node.extra && node.extra.raw) {
       node.raw = node.extra.raw;
     } else {
-      node.raw = source.slice(node.start, node.end);
+      node.raw = state.source.slice(node.start, node.end);
     }
-  }
-}
-
-function changeComments(nodeComments) {
-  for (var i = 0; i < nodeComments.length; i++) {
-    var comment = nodeComments[i];
-    if (comment.type === "CommentLine") {
-      comment.type = "Line";
-    } else if (comment.type === "CommentBlock") {
-      comment.type = "Block";
-    }
-    comment.range = [comment.start, comment.end];
   }
 }
 
@@ -76,24 +66,40 @@ var astTransformVisitor = {
     }
 
     if (node.trailingComments) {
-      changeComments(node.trailingComments);
+      convertComments(node.trailingComments);
     }
 
     if (node.leadingComments) {
-      changeComments(node.leadingComments);
+      convertComments(node.leadingComments);
     }
 
     // make '_paths' non-enumerable (babel-eslint #200)
     Object.defineProperty(node, "_paths", { value: node._paths, writable: true });
   },
-  exit (path) {
+  exit (path, state) {
     var node = path.node;
 
-    [
-      fixDirectives,
-    ].forEach((fixer) => {
-      fixer(path);
-    });
+    // fixDirectives
+    if (path.isFunction() || path.isProgram()) {
+      var directivesContainer = node;
+      var body = node.body;
+      if (node.type !== "Program") {
+        directivesContainer = body;
+        body = body.body;
+      }
+      if (directivesContainer.directives) {
+        for (var i = directivesContainer.directives.length - 1; i >= 0; i--) {
+          var directive = directivesContainer.directives[i];
+          directive.type = "ExpressionStatement";
+          directive.expression = directive.value;
+          delete directive.value;
+          directive.expression.type = "Literal";
+          changeToLiteral(directive.expression, state);
+          body.unshift(directive);
+        }
+        delete directivesContainer.directives;
+      }
+    }
 
     if (path.isJSXText()) {
       node.type = "Literal";
@@ -102,7 +108,7 @@ var astTransformVisitor = {
 
     if (path.isNumericLiteral() ||
         path.isStringLiteral()) {
-      changeToLiteral(node);
+      changeToLiteral(node, state);
     }
 
     if (path.isBooleanLiteral()) {
@@ -119,7 +125,11 @@ var astTransformVisitor = {
     if (path.isRegExpLiteral()) {
       node.type = "Literal";
       node.raw = node.extra.raw;
-      node.value = {};
+      try {
+        node.value = new RegExp(node.pattern, node.flags);
+      } catch (err) {
+        node.value = null;
+      }
       node.regex = {
         pattern: node.pattern,
         flags: node.flags
@@ -135,7 +145,7 @@ var astTransformVisitor = {
     }
 
     if (path.isClassMethod() || path.isObjectMethod()) {
-      var code = source.slice(node.key.end, node.body.start);
+      var code = state.source.slice(node.key.end, node.body.start);
       var offset = code.indexOf("(");
 
       node.value = {
@@ -242,7 +252,8 @@ var astTransformVisitor = {
 
     // template string range fixes
     if (path.isTemplateLiteral()) {
-      node.quasis.forEach((q) => {
+      for (var j = 0; j < node.quasis.length; j++) {
+        var q = node.quasis[j];
         q.range[0] -= 1;
         if (q.tail) {
           q.range[1] += 1;
@@ -255,34 +266,7 @@ var astTransformVisitor = {
         } else {
           q.loc.end.column += 2;
         }
-      });
+      }
     }
   }
 };
-
-
-function fixDirectives (path) {
-  if (!(path.isProgram() || path.isFunction())) return;
-
-  var node = path.node;
-  var directivesContainer = node;
-  var body = node.body;
-
-  if (node.type !== "Program") {
-    directivesContainer = body;
-    body = body.body;
-  }
-
-  if (!directivesContainer.directives) return;
-
-  directivesContainer.directives.reverse().forEach((directive) => {
-    directive.type = "ExpressionStatement";
-    directive.expression = directive.value;
-    delete directive.value;
-    directive.expression.type = "Literal";
-    changeToLiteral(directive.expression);
-    body.unshift(directive);
-  });
-  delete directivesContainer.directives;
-}
-// fixDirectives

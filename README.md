@@ -1,6 +1,7 @@
 # @oigroup/lightscript-eslint
 
-> NB: This is a fork of lightscript-eslint which implements language changes that are not necessarily endorsed by upstream. Generally speaking, our intent is to closely follow the upstream language -- however, there may be notable deviations which are documented below.
+> `@oigroup/lightscript-eslint` is most frequently tested with `eslint@^4.0.0`.
+> It SHOULD be backwards-compatible with `eslint@^3.0.0` as well.
 
 `@oigroup/lightscript-eslint` is a fork of `babel-eslint` that parses code with
 `@oigroup/babylon-lightscript` and `@oigroup/babel-plugin-lightscript`.
@@ -12,7 +13,7 @@ all others will be processed exactly as in `babel-eslint`.
 To use, just `npm install --save-dev @oigroup/lightscript-eslint`
 and add `parser: "@oigroup/lightscript-eslint"` to your `.eslintrc`.
 
-Testing so far has been limited; this is very much alpha software and it may not work well. So far, it is has seen limited use with the following configuration:
+Example configuration (with React):
 
 ```json
 {
@@ -28,10 +29,34 @@ Testing so far has been limited; this is very much alpha software and it may not
     "browser": true,
     "node": true,
     "es6": true
-  },
-  "rules": {
-    "semi": ["error", "never"],
-    "react/require-render-return": 0
   }
 }
 ```
+
+When running `eslint` from the CLI, you must tell it to process LightScript file extensions:
+
+```
+$ eslint --ext .js,.lsc src
+```
+
+### Live Linting
+
+#### Visual Studio Code
+
+- Set up eslint for your project as above. Verify that eslint lints correctly from the CLI.
+- Install the `ESLint` extension for VSCode: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
+- Tell VSCode to live-lint LightScript files by adding the following entry to your VSCode options (workspace or global):
+  ```
+  "eslint.validate": ["javascript", "javascriptreact", "lightscript"]
+  ```
+
+### Broken Rules
+
+The following lint rules are either buggy, broken, or do not make sense in the context of LightScript. They are disabled at the code level and will not run even if you enable them in your configuration.
+
+- `no-unexpected-multiline`
+- `no-else-return`
+
+### Contributing
+
+Issues: https://github.com/wcjohnson/lightscript/issues

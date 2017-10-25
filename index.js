@@ -1,35 +1,28 @@
 var babylonToEspree = require("./babylon-to-espree");
-var pick            = require("lodash.pickby");
-var isEmpty         = require("lodash/isEmpty");
 var Module          = require("module");
 var path            = require("path");
 var jsParse         = require("babylon").parse;
 var babel           = require("babel-core");
-var lscPlugin       = require("@oigroup/babel-plugin-lightscript");
-var lscConfig       = require("@oigroup/babel-plugin-lightscript/lib/config");
 var t               = require("babel-types");
-var tt              = require("@oigroup/babylon-lightscript").tokTypes;
+var tt              = require("babylon").tokTypes;
 var traverse        = require("babel-traverse").default;
 var codeFrame       = require("babel-code-frame");
+
+var lscPlugin       = require("@oigroup/babel-plugin-lightscript");
+var lscTooling      = require("@oigroup/babel-plugin-lightscript/lib/tooling");
+
+var lightScriptDisabledRulesTable = {
+  "no-unexpected-multiline": true,
+  "no-else-return": true
+};
 
 var hasPatched = false;
 var eslintOptions = {};
 
-function createModule(filename) {
-  var mod = new Module(filename);
-  mod.filename = filename;
-  mod.paths = Module._nodeModulePaths(path.dirname(filename));
-  return mod;
-}
-
-function monkeypatch() {
-  if (hasPatched) return;
-  hasPatched = true;
-
-  var eslintLoc;
+function getModules() {
   try {
     // avoid importing a local copy of eslint, try to find a peer dependency
-    eslintLoc = Module._resolveFilename("eslint", module.parent);
+    var eslintLoc = Module._resolveFilename("eslint", module.parent);
   } catch (err) {
     try {
       // avoids breaking in jest where module.parent is undefined
@@ -40,23 +33,44 @@ function monkeypatch() {
   }
 
   // get modules relative to what eslint will load
-  var eslintMod = createModule(eslintLoc);
-  // contains all the instances of estraverse so we can modify them if necessary
-  var estraverses = [];
-  // ESLint v1.9.0 uses estraverse directly to work around https://github.com/npm/npm/issues/9663
-  var estraverseOfEslint = eslintMod.require("estraverse");
-  estraverses.push(estraverseOfEslint);
-  Object.assign(estraverseOfEslint.VisitorKeys, t.VISITOR_KEYS);
+  var eslintMod = new Module(eslintLoc);
+  eslintMod.filename = eslintLoc;
+  eslintMod.paths = Module._nodeModulePaths(path.dirname(eslintLoc));
 
-  estraverses.forEach((estraverse) => {
-    estraverse.VisitorKeys.MethodDefinition.push("decorators");
-    estraverse.VisitorKeys.Property.push("decorators");
-  });
+  try {
+    var escope = eslintMod.require("eslint-scope");
+    var Definition = eslintMod.require("eslint-scope/lib/definition").Definition;
+    var referencer = eslintMod.require("eslint-scope/lib/referencer");
+  } catch (err) {
+    escope  = eslintMod.require("escope");
+    Definition = eslintMod.require("escope/lib/definition").Definition;
+    referencer = eslintMod.require("escope/lib/referencer");
+  }
 
-  // monkeypatch escope
-  var escopeLoc = Module._resolveFilename("escope", eslintMod);
-  var escopeMod = createModule(escopeLoc);
-  var escope  = require(escopeLoc);
+  var estraverse = eslintMod.require("estraverse");
+
+  if (referencer.__esModule) referencer = referencer.default;
+
+  return {
+    eslintMod,
+    Definition,
+    escope,
+    estraverse,
+    referencer,
+  };
+}
+
+function monkeypatch(modules) {
+  var eslintMod = modules.eslintMod;
+  var Definition = modules.Definition;
+  var escope = modules.escope;
+  var estraverse = modules.estraverse;
+  var referencer = modules.referencer;
+
+  Object.assign(estraverse.VisitorKeys, t.VISITOR_KEYS);
+  estraverse.VisitorKeys.MethodDefinition.push("decorators");
+  estraverse.VisitorKeys.Property.push("decorators");
+
   var analyze = escope.analyze;
   escope.analyze = function (ast, opts) {
     opts.ecmaVersion = eslintOptions.ecmaVersion;
@@ -68,28 +82,6 @@ function monkeypatch() {
     var results = analyze.call(this, ast, opts);
     return results;
   };
-
-  // monkeypatch escope/referencer
-  var referencerLoc;
-  try {
-    referencerLoc = Module._resolveFilename("./referencer", escopeMod);
-  } catch (err) {
-    throw new ReferenceError("couldn't resolve escope/referencer");
-  }
-  var referencerMod = createModule(referencerLoc);
-  var referencer = require(referencerLoc);
-  if (referencer.__esModule) {
-    referencer = referencer.default;
-  }
-
-  // reference Definition
-  var definitionLoc;
-  try {
-    definitionLoc = Module._resolveFilename("./definition", referencerMod);
-  } catch (err) {
-    throw new ReferenceError("couldn't resolve escope/definition");
-  }
-  var Definition = require(definitionLoc).Definition;
 
   // if there are decorators, then visit each
   function visitDecorators(node) {
@@ -104,24 +96,29 @@ function monkeypatch() {
   }
 
   // iterate through part of t.VISITOR_KEYS
-  var visitorKeysMap = pick(t.VISITOR_KEYS, (k) => {
-    return t.FLIPPED_ALIAS_KEYS.Flow.concat([
-      "ArrayPattern",
-      "ClassDeclaration",
-      "ClassExpression",
-      "FunctionDeclaration",
-      "FunctionExpression",
-      "Identifier",
-      "ObjectPattern",
-      "RestElement"
-    ]).indexOf(k) === -1;
-  });
+  var flowFlippedAliasKeys = t.FLIPPED_ALIAS_KEYS.Flow.concat([
+    "ArrayPattern",
+    "ClassDeclaration",
+    "ClassExpression",
+    "FunctionDeclaration",
+    "FunctionExpression",
+    "Identifier",
+    "ObjectPattern",
+    "RestElement"
+  ]);
+  var visitorKeysMap = Object.keys(t.VISITOR_KEYS).reduce(function(acc, key) {
+    var value = t.VISITOR_KEYS[key];
+    if (flowFlippedAliasKeys.indexOf(value) === -1) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
 
   var propertyTypes = {
     // loops
     callProperties: { type: "loop", values: ["value"] },
     indexers: { type: "loop", values: ["key", "value"] },
-    properties: { type: "loop", values: ["value"] },
+    properties: { type: "loop", values: ["argument", "value"] },
     types: { type: "loop" },
     params: { type: "loop" },
     // single property
@@ -156,7 +153,10 @@ function monkeypatch() {
         for (var j = 0; j < nodeProperty.length; j++) {
           if (Array.isArray(propertyType.values)) {
             for (var k = 0; k < propertyType.values.length; k++) {
-              checkIdentifierOrVisit.call(this, nodeProperty[j][propertyType.values[k]]);
+              var loopPropertyNode = nodeProperty[j][propertyType.values[k]];
+              if (loopPropertyNode) {
+                checkIdentifierOrVisit.call(this, loopPropertyNode);
+              }
             }
           } else {
             checkIdentifierOrVisit.call(this, nodeProperty[j]);
@@ -197,6 +197,9 @@ function monkeypatch() {
     for (var j = 0; j < node.typeParameters.params.length; j++) {
       var name = node.typeParameters.params[j];
       scope.__define(name, new Definition("TypeParameter", name, name));
+      if (name.typeAnnotation) {
+        checkIdentifierOrVisit.call(this, name);
+      }
     }
     scope.__define = function() {
       return parentScope.__define.apply(parentScope, arguments);
@@ -210,7 +213,7 @@ function monkeypatch() {
     visitDecorators.call(this, node);
     var typeParamScope;
     if (node.typeParameters) {
-      typeParamScope = nestTypeParamScope(this.scopeManager, node);
+      typeParamScope = nestTypeParamScope.call(this, this.scopeManager, node);
     }
     // visit flow type: ClassImplements
     if (node.implements) {
@@ -252,7 +255,7 @@ function monkeypatch() {
   referencer.prototype.visitFunction = function(node) {
     var typeParamScope;
     if (node.typeParameters) {
-      typeParamScope = nestTypeParamScope(this.scopeManager, node);
+      typeParamScope = nestTypeParamScope.call(this, this.scopeManager, node);
     }
     if (node.returnType) {
       checkIdentifierOrVisit.call(this, node.returnType);
@@ -272,16 +275,12 @@ function monkeypatch() {
     }
     // set ArrayPattern/ObjectPattern visitor keys back to their original. otherwise
     // escope will traverse into them and include the identifiers within as declarations
-    estraverses.forEach((estraverse) => {
-      estraverse.VisitorKeys.ObjectPattern = ["properties"];
-      estraverse.VisitorKeys.ArrayPattern = ["elements"];
-    });
+    estraverse.VisitorKeys.ObjectPattern = ["properties"];
+    estraverse.VisitorKeys.ArrayPattern = ["elements"];
     visitFunction.call(this, node);
     // set them back to normal...
-    estraverses.forEach((estraverse) => {
-      estraverse.VisitorKeys.ObjectPattern = t.VISITOR_KEYS.ObjectPattern;
-      estraverse.VisitorKeys.ArrayPattern = t.VISITOR_KEYS.ArrayPattern;
-    });
+    estraverse.VisitorKeys.ObjectPattern = t.VISITOR_KEYS.ObjectPattern;
+    estraverse.VisitorKeys.ArrayPattern = t.VISITOR_KEYS.ArrayPattern;
     if (typeParamScope) {
       this.close(node);
     }
@@ -315,11 +314,27 @@ function monkeypatch() {
     );
   }
 
+  referencer.prototype.InterfaceDeclaration = function(node) {
+    createScopeVariable.call(this, node, node.id);
+    var typeParamScope;
+    if (node.typeParameters) {
+      typeParamScope = nestTypeParamScope.call(this, this.scopeManager, node);
+    }
+    // TODO: Handle mixins
+    for (var i = 0; i < node.extends.length; i++) {
+      visitTypeAnnotation.call(this, node.extends[i]);
+    }
+    visitTypeAnnotation.call(this, node.body);
+    if (typeParamScope) {
+      this.close(node);
+    }
+  };
+
   referencer.prototype.TypeAlias = function(node) {
     createScopeVariable.call(this, node, node.id);
     var typeParamScope;
     if (node.typeParameters) {
-      typeParamScope = nestTypeParamScope(this.scopeManager, node);
+      typeParamScope = nestTypeParamScope.call(this, this.scopeManager, node);
     }
     if (node.right) {
       visitTypeAnnotation.call(this, node.right);
@@ -339,7 +354,7 @@ function monkeypatch() {
 
     var typeParamScope;
     if (node.typeParameters) {
-      typeParamScope = nestTypeParamScope(this.scopeManager, node);
+      typeParamScope = nestTypeParamScope.call(this, this.scopeManager, node);
     }
     if (typeParamScope) {
       this.close(node);
@@ -352,18 +367,29 @@ function monkeypatch() {
   ts.prototype.getTokenBefore = returnNonceTokenPatch(ts.prototype.getTokenBefore);
   ts.prototype.getFirstToken = returnNonceTokenPatch(ts.prototype.getFirstToken);
   ts.prototype.getLastToken = returnNonceTokenPatch(ts.prototype.getLastToken);
+  var origGetFirstTokens = ts.prototype.getFirstTokens;
+  ts.prototype.getFirstTokens = function() {
+    if (!arguments[0] || arguments[0].type === "Nonce") return [createNonceToken()];
+    var toks = origGetFirstTokens.apply(this, arguments);
+    if (toks == null || toks[0] == null) return [createNonceToken()]; else return toks;
+  };
 
   // monkeypatch rules
+  // in eslint 4, rule getter is a class whereas it was an object in 3...
+  var emptyRule = function() { return {}; };
+  emptyRule.create = function() { return {}; };
   var rules = getModule(eslintMod, "./rules");
-  var _get = rules.get;
-  rules.get = function get(ruleId) {
-    // disable no-unexpected-multiline, lsc compiler deals with this
-    if (ruleId === "no-unexpected-multiline") {
-      return function() { return {}; };
+  var _get = rules.get || rules.prototype.get;
+  var nextGet = function get(ruleId) {
+    // disable invalid or broken rules
+    if (ruleId && lightScriptDisabledRulesTable[ruleId]) {
+      return emptyRule;
     } else {
-      return _get.call(rules, ruleId);
+      return _get.call(this || rules, ruleId);
     }
   };
+
+  if (rules.get) rules.get = nextGet; else rules.prototype.get = nextGet;
 }
 
 function createNonceToken() {
@@ -409,11 +435,14 @@ exports.parse = function (code, options) {
     delete eslintOptions.globalReturn;
   }
 
-  try {
-    monkeypatch();
-  } catch (err) {
-    console.error(err.stack);
-    process.exit(1);
+  if (!hasPatched) {
+    hasPatched = true;
+    try {
+      monkeypatch(getModules());
+    } catch (err) {
+      console.error(err.stack);
+      process.exit(1);
+    }
   }
 
   return exports.parseNoPatch(code, options);
@@ -421,6 +450,7 @@ exports.parse = function (code, options) {
 
 exports.parseNoPatch = function (code, options) {
   var opts = {
+    codeFrame: options.hasOwnProperty("codeFrame") ? options.codeFrame : true,
     sourceType: options.sourceType,
     allowImportExportEverywhere: options.allowImportExportEverywhere, // consistent with espree
     allowReturnOutsideFunction: true,
@@ -449,40 +479,25 @@ exports.parseNoPatch = function (code, options) {
   // and come up with all this stuff.
   // (This setup step should also read .babelrc)
   var filePath = options.filePath;
-  var configOpts = lscConfig.parseConfigurationDirectives(code);
-  var useLsc = (configOpts.isLightScript || !filePath || /\.(lsc|lsx)/.test(filePath) || filePath === "unknown");
+  var compilerConfig = lscTooling.getCompilerConfiguration(filePath, code, { __linter: true });
+  var useLsc = compilerConfig.isLightScript;
 
   var ast;
   try {
     if (useLsc) {
-      if (isEmpty(configOpts)) {
-        configOpts = {
-          existential: true,
-          safeCall: true,
-          bangCall: true,
-          flippedImports: true,
-          noEnforcedSubscriptIndentation: true,
-          enhancedComprehension: true,
-          placeholderArgs: true,
-          pipeCall: true,
-          __linter: true
-        };
-      } else {
-        configOpts.__linter = true;
-      }
+      tt = lscTooling.babylon.tokTypes;
 
-      const parserOpts = lscConfig.getParserOpts(configOpts);
-      parserOpts.sourceType = options.sourceType;
-      parserOpts.allowImportExportEverywhere = options.allowImportExportEverywhere;
-      parserOpts.allowReturnOutsideFunction = true;
-      parserOpts.allowSuperOutsideMethod = true;
+      ast = lscTooling.parse(compilerConfig, code, {
+        sourceType: options.sourceType,
+        allowImportExportEverywhere: options.allowImportExportEverywhere,
+        allowReturnOutsideFunction: true,
+        allowSuperOutsideMethod: true
+      });
 
-      ast = parserOpts.parser(code, parserOpts);
-      // ast = lscParse(code, parserOpts);
       // run it through babel-plugin-lightscript to throw errors
       const { ast: nextAst } = babel.transformFromAst(ast, code, {
         code: false,
-        plugins: [[lscPlugin, configOpts]],
+        plugins: [[lscPlugin, compilerConfig]],
       });
       nextAst.tokens = ast.tokens;
       ast = nextAst;
@@ -492,45 +507,24 @@ exports.parseNoPatch = function (code, options) {
   } catch (err) {
     if (err.loc) {
       err.lineNumber = err.loc.line;
-      err.column = err.loc.column + 1;
+      err.column = err.loc.column;
 
-      // remove trailing "(LINE:COLUMN)" acorn message and add in esprima syntax error message start
-      err.message = "Line " + err.lineNumber + ": " + err.message.replace(/ \((\d+):(\d+)\)$/, "") +
-      // add codeframe
-      "\n\n" +
-      codeFrame(code, err.lineNumber, err.column, { highlightCode: true });
+      if (opts.codeFrame) {
+        err.lineNumber = err.loc.line;
+        err.column = err.loc.column + 1;
+
+        // remove trailing "(LINE:COLUMN)" acorn message and add in esprima syntax error message start
+        err.message = "Line " + err.lineNumber + ": " + err.message.replace(/ \((\d+):(\d+)\)$/, "") +
+        // add codeframe
+        "\n\n" +
+        codeFrame(code, err.lineNumber, err.column, { highlightCode: true });
+      }
     }
 
     throw err;
   }
 
-  // remove EOF token, eslint doesn't use this for anything and it interferes with some rules
-  // see https://github.com/babel/babel-eslint/issues/2 for more info
-  // todo: find a more elegant way to do this
-  ast.tokens.pop();
-
-  // convert tokens
-  ast.tokens = babylonToEspree.toTokens(ast.tokens, tt, code);
-
-  // add comments
-  babylonToEspree.convertComments(ast.comments);
-
-  // transform esprima and acorn divergent nodes
-  babylonToEspree.toAST(ast, traverse, code);
-
-  // ast.program.tokens = ast.tokens;
-  // ast.program.comments = ast.comments;
-  // ast = ast.program;
-
-  // remove File
-  ast.type = "Program";
-  ast.sourceType = ast.program.sourceType;
-  ast.directives = ast.program.directives;
-  ast.body = ast.program.body;
-  delete ast.program;
-  delete ast._paths;
-
-  babylonToEspree.attachComments(ast, ast.comments, ast.tokens);
+  babylonToEspree(ast, traverse, tt, code);
 
   return ast;
 };
