@@ -20,6 +20,9 @@
     "babylon": "^6.18.0",
     "lodash": "^4.17.4"
   },
+  "peerDependencies": {
+    "eslint": "4.8.0"
+  },
   "scripts": {
     "test": "npm run lint && npm run test-only",
     "test-only": "mocha",
@@ -39,7 +42,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.2.1",
-    "eslint": "^3.19.0",
+    "eslint": "4.8.0",
     "eslint-config-babel": "^6.0.0",
     "eslint-plugin-babel": "^4.0.0",
     "eslint-plugin-flowtype": "^2.30.3",
