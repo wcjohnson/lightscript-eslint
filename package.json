@@ -1,6 +1,6 @@
 {
   "name": "@oigroup/lightscript-eslint",
-  "version": "3.0.0",
+  "version": "3.1.0-alpha.2",
   "description": "LightScript parser for ESLint, based on babel-eslint",
   "main": "index.js",
   "files": [
@@ -12,13 +12,16 @@
     "url": "https://github.com/wcjohnson/lightscript-eslint.git"
   },
   "dependencies": {
-    "@oigroup/babel-plugin-lightscript": "3.0.0",
+    "@oigroup/babel-plugin-lightscript": "3.1.0-alpha.2",
     "babel-code-frame": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-traverse": "^6.26.0",
     "babel-types": "^6.26.0",
     "babylon": "^6.18.0",
     "lodash": "^4.17.4"
+  },
+  "peerDependencies": {
+    "eslint": "4.8.0"
   },
   "scripts": {
     "test": "npm run lint && npm run test-only",
@@ -39,7 +42,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.2.1",
-    "eslint": "^3.19.0",
+    "eslint": "4.8.0",
     "eslint-config-babel": "^6.0.0",
     "eslint-plugin-babel": "^4.0.0",
     "eslint-plugin-flowtype": "^2.30.3",
