@@ -1,90 +1,88 @@
-var assert      = require("assert");
+var assert = require("assert");
 var babelEslint = require("..");
-var espree      = require("espree");
-var util        = require("util");
-var unpad       = require("dedent");
-
-// Checks if the source ast implements the target ast. Ignores extra keys on source ast
-function assertImplementsAST(target, source, path) {
-  if (!path) {
-    path = [];
-  }
-
-  function error(text) {
-    var err = new Error(`At ${path.join(".")}: ${text}:`);
-    err.depth = path.length + 1;
-    throw err;
-  }
-
-  var typeA = target === null ? "null" : typeof target;
-  var typeB = source === null ? "null" : typeof source;
-  if (typeA !== typeB) {
-    error(`have different types (${typeA} !== ${typeB}) (${target} !== ${source})`);
-  } else if (typeA === "object" && ["RegExp"].indexOf(target.constructor.name) !== -1 && target.constructor.name !== source.constructor.name) {
-    error(`object have different constructors (${target.constructor.name} !== ${source.constructor.name}`);
-  } else if (typeA === "object") {
-    var keysTarget = Object.keys(target);
-    for (var i in keysTarget) {
-      var key = keysTarget[i];
-      path.push(key);
-      assertImplementsAST(target[key], source[key], path);
-      path.pop();
-    }
-  } else if (target !== source) {
-    error(`are different (${JSON.stringify(target)} !== ${JSON.stringify(source)})`);
-  }
-}
+var espree = require("espree");
+var escope = require("eslint-scope");
+var util = require("util");
+var unpad = require("dedent");
+var assertImplementsAST = require("./fixtures/assert-implements-ast");
 
 function lookup(obj, keypath, backwardsDepth) {
-  if (!keypath) { return obj; }
+  if (!keypath) {
+    return obj;
+  }
 
-  return keypath.split(".").slice(0, -1 * backwardsDepth)
-  .reduce((base, segment) => { return base && base[segment], obj; });
+  return keypath
+    .split(".")
+    .slice(0, -1 * backwardsDepth)
+    .reduce((base, segment) => {
+      return base && base[segment], obj;
+    });
 }
 
 function parseAndAssertSame(code) {
+  code = unpad(code);
   var esAST = espree.parse(code, {
     ecmaFeatures: {
-        // enable JSX parsing
+      // enable JSX parsing
       jsx: true,
-        // enable return in global scope
+      // enable return in global scope
       globalReturn: true,
-        // enable implied strict mode (if ecmaVersion >= 5)
+      // enable implied strict mode (if ecmaVersion >= 5)
       impliedStrict: true,
-        // allow experimental object rest/spread
-      experimentalObjectRestSpread: true
+      // allow experimental object rest/spread
+      experimentalObjectRestSpread: true,
     },
     tokens: true,
     loc: true,
     range: true,
     comment: true,
     attachComment: true,
-    ecmaVersion: 8,
-    sourceType: "module"
+    ecmaVersion: 2018,
+    sourceType: "module",
   });
-  var babylonAST = babelEslint.parse(code);
+  var babylonAST = babelEslint.parseForESLint(code, {
+    eslintVisitorKeys: true,
+    eslintScopeManager: true,
+  }).ast;
   try {
     assertImplementsAST(esAST, babylonAST);
   } catch (err) {
     var traversal = err.message.slice(3, err.message.indexOf(":"));
-    if (esAST.tokens) {
-      delete esAST.tokens;
-    }
-    if (babylonAST.tokens) {
-      delete babylonAST.tokens;
-    }
     err.message += unpad(`
       espree:
-      ${util.inspect(lookup(esAST, traversal, 2), { depth: err.depth, colors: true })}
+      ${util.inspect(lookup(esAST, traversal, 2), {
+        depth: err.depth,
+        colors: true,
+      })}
       babel-eslint:
-      ${util.inspect(lookup(babylonAST, traversal, 2), { depth: err.depth, colors: true })}
+      ${util.inspect(lookup(babylonAST, traversal, 2), {
+        depth: err.depth,
+        colors: true,
+      })}
     `);
     throw err;
   }
-  // assert.equal(esAST, babylonAST);
+  //assert.equal(esAST, babylonAST);
 }
 
-describe("babylon-to-esprima", () => {
+describe("babylon-to-espree", () => {
+  describe("compatibility", () => {
+    it("should allow ast.analyze to be called without options", function() {
+      var esAST = babelEslint.parseForESLint("`test`", {
+        eslintScopeManager: true,
+        eslintVisitorKeys: true,
+      }).ast;
+
+      assert.doesNotThrow(
+        () => {
+          escope.analyze(esAST);
+        },
+        TypeError,
+        "Should allow no options argument."
+      );
+    });
+  });
+
   describe("templates", () => {
     it("empty template string", () => {
       parseAndAssertSame("``");
@@ -127,44 +125,63 @@ describe("babylon-to-esprima", () => {
     });
 
     it("template with nested function/object", () => {
-      parseAndAssertSame("`outer${{x: {y: 10}}}bar${`nested${function(){return 1;}}endnest`}end`");
+      parseAndAssertSame(
+        "`outer${{x: {y: 10}}}bar${`nested${function(){return 1;}}endnest`}end`"
+      );
     });
 
     it("template with braces inside and outside of template string #96", () => {
-      parseAndAssertSame("if (a) { var target = `{}a:${webpackPort}{}}}}`; } else { app.use(); }");
+      parseAndAssertSame(
+        "if (a) { var target = `{}a:${webpackPort}{}}}}`; } else { app.use(); }"
+      );
     });
 
     it("template also with braces #96", () => {
-      parseAndAssertSame(
-        unpad(`
-          export default function f1() {
-            function f2(foo) {
-              const bar = 3;
-              return \`\${foo} \${bar}\`;
-            }
-            return f2;
+      parseAndAssertSame(`
+        export default function f1() {
+          function f2(foo) {
+            const bar = 3;
+            return \`\${foo} \${bar}\`;
           }
-        `)
-      );
+          return f2;
+        }
+      `);
     });
 
     it("template with destructuring #31", () => {
-      parseAndAssertSame(
-        unpad(`
-          module.exports = {
-            render() {
-              var {name} = this.props;
-              return Math.max(null, \`Name: \${name}, Name: \${name}\`);
-            }
-          };
-        `)
-      );
+      parseAndAssertSame(`
+        module.exports = {
+          render() {
+            var {name} = this.props;
+            return Math.max(null, \`Name: \${name}, Name: \${name}\`);
+          }
+        };
+      `);
+    });
+
+    it("template with arrow returning template #603", () => {
+      parseAndAssertSame(`
+        var a = \`\${() => {
+          \`\${''}\`
+        }}\`;
+      `);
+    });
+
+    it("template string with object with template string inside", () => {
+      parseAndAssertSame("`${ { a:`${2}` } }`");
     });
   });
 
-  // TODO: fix; for lightscript
   it("simple expression", () => {
-    parseAndAssertSame("a + 1");
+    parseAndAssertSame("a = 1");
+  });
+
+  it("logical NOT", () => {
+    parseAndAssertSame("!0");
+  });
+
+  it("bitwise NOT", () => {
+    parseAndAssertSame("~0");
   });
 
   it("class declaration", () => {
@@ -208,19 +225,19 @@ describe("babylon-to-esprima", () => {
   });
 
   it("default import", () => {
-    parseAndAssertSame("import foo from \"foo\";");
+    parseAndAssertSame('import foo from "foo";');
   });
 
   it("import specifier", () => {
-    parseAndAssertSame("import { foo } from \"foo\";");
+    parseAndAssertSame('import { foo } from "foo";');
   });
 
   it("import specifier with name", () => {
-    parseAndAssertSame("import { foo as bar } from \"foo\";");
+    parseAndAssertSame('import { foo as bar } from "foo";');
   });
 
   it("import bare", () => {
-    parseAndAssertSame("import \"foo\";");
+    parseAndAssertSame('import "foo";');
   });
 
   it("export default class declaration", () => {
@@ -240,7 +257,7 @@ describe("babylon-to-esprima", () => {
   });
 
   it("export all", () => {
-    parseAndAssertSame("export * from \"foo\";");
+    parseAndAssertSame('export * from "foo";');
   });
 
   it("export named", () => {
@@ -249,6 +266,36 @@ describe("babylon-to-esprima", () => {
 
   it("export named alias", () => {
     parseAndAssertSame("export { foo as bar };");
+  });
+
+  // Espree doesn't support the optional chaining operator yet
+  it("optional chaining operator (token)", () => {
+    const code = "foo?.bar";
+    var babylonAST = babelEslint.parseForESLint(code, {
+      eslintVisitorKeys: true,
+      eslintScopeManager: true,
+    }).ast;
+    assert.strictEqual(babylonAST.tokens[1].type, "Punctuator");
+  });
+
+  // Espree doesn't support the nullish coalescing operator yet
+  it("nullish coalescing operator (token)", () => {
+    const code = "foo ?? bar";
+    var babylonAST = babelEslint.parseForESLint(code, {
+      eslintVisitorKeys: true,
+      eslintScopeManager: true,
+    }).ast;
+    assert.strictEqual(babylonAST.tokens[1].type, "Punctuator");
+  });
+
+  // Espree doesn't support the pipeline operator yet
+  it("pipeline operator (token)", () => {
+    const code = "foo |> bar";
+    var babylonAST = babelEslint.parseForESLint(code, {
+      eslintVisitorKeys: true,
+      eslintScopeManager: true,
+    }).ast;
+    assert.strictEqual(babylonAST.tokens[1].type, "Punctuator");
   });
 
   it.skip("empty program with line comment", () => {
@@ -260,40 +307,34 @@ describe("babylon-to-esprima", () => {
   });
 
   it("line comments", () => {
-    parseAndAssertSame(
-      unpad(`
-        // single comment
-        var foo = 15; // comment next to statement
-        // second comment after statement
-      `)
-    );
+    parseAndAssertSame(`
+      // single comment
+      var foo = 15; // comment next to statement
+      // second comment after statement
+    `);
   });
 
   it("block comments", () => {
-    parseAndAssertSame(
-      unpad(`
-        /* single comment */
-        var foo = 15; /* comment next to statement */
-        /*
-         * multiline
-         * comment
-         */
-       `)
-    );
+    parseAndAssertSame(`
+      /* single comment */
+      var foo = 15; /* comment next to statement */
+      /*
+       * multiline
+       * comment
+       */
+    `);
   });
 
   it("block comments #124", () => {
-    parseAndAssertSame(
-      unpad(`
-        React.createClass({
-          render() {
-            // return (
-            //   <div />
-            // ); // <-- this is the line that is reported
-          }
-        });
-      `)
-    );
+    parseAndAssertSame(`
+      React.createClass({
+        render() {
+          // return (
+          //   <div />
+          // ); // <-- this is the line that is reported
+        }
+      });
+    `);
   });
 
   it("null", () => {
@@ -321,11 +362,11 @@ describe("babylon-to-esprima", () => {
   });
 
   it("regexp in a template string", () => {
-    parseAndAssertSame("`${/\\d/.exec(\"1\")[0]}`");
+    parseAndAssertSame('`${/\\d/.exec("1")[0]}`');
   });
 
   it("first line is empty", () => {
-    parseAndAssertSame("\nimport Immutable from \"immutable\";");
+    parseAndAssertSame('\nimport Immutable from "immutable";');
   });
 
   it("empty", () => {
@@ -333,87 +374,77 @@ describe("babylon-to-esprima", () => {
   });
 
   it("jsdoc", () => {
-    parseAndAssertSame(
-      unpad(`
-        /**
-        * @param {object} options
-        * @return {number}
-        */
-        const test = function({ a, b, c }) {
-          return a + b + c;
-        };
-        module.exports = test;
-      `)
-    );
+    parseAndAssertSame(`
+      /**
+      * @param {object} options
+      * @return {number}
+      */
+      const test = function({ a, b, c }) {
+        return a + b + c;
+      };
+      module.exports = test;
+    `);
   });
 
   it("empty block with comment", () => {
-    parseAndAssertSame(
-      unpad(`
-        function a () {
-          try {
-            return b();
-          } catch (e) {
-            // asdf
-          }
+    parseAndAssertSame(`
+      function a () {
+        try {
+          b();
+        } catch (e) {
+          // asdf
         }
-      `)
-    );
+      }
+    `);
   });
 
-  describe("babel 6 tests", () => {
+  describe("babel tests", () => {
     it("MethodDefinition", () => {
-      parseAndAssertSame(
-        unpad(`
-          export default class A {
-            a() {}
-          }
-        `)
-      );
+      parseAndAssertSame(`
+        export default class A {
+          a() {}
+        }
+      `);
     });
 
     it("MethodDefinition 2", () => {
-      parseAndAssertSame("export default class Bar { get bar() { return 42; }}");
+      parseAndAssertSame(
+        "export default class Bar { get bar() { return 42; }}"
+      );
     });
 
     it("ClassMethod", () => {
-      parseAndAssertSame(
-        unpad(`
-          class A {
-            constructor() {
-            }
+      parseAndAssertSame(`
+        class A {
+          constructor() {
           }
-        `)
-      );
+        }
+      `);
     });
 
     it("ClassMethod multiple params", () => {
-      parseAndAssertSame(
-        unpad(`
-          class A {
-            constructor(a, b, c) {
-            }
+      parseAndAssertSame(`
+        class A {
+          constructor(a, b, c) {
           }
-        `)
-      );
+        }
+      `);
     });
 
     it("ClassMethod multiline", () => {
-      parseAndAssertSame(
-        unpad(`
-          class A {
-            constructor (
-              a,
-              b,
-              c
-            )
+      parseAndAssertSame(`
+        class A {
+          constructor (
+            a,
+            b,
+            c
+          )
 
-            {
+          {
 
-            }
           }
-        `)
-      );
+        }
+      `);
     });
 
     it("ClassMethod oneline", () => {
@@ -421,19 +452,17 @@ describe("babylon-to-esprima", () => {
     });
 
     it("ObjectMethod", () => {
-      parseAndAssertSame(
-        unpad(`
-          var a = {
-            b(c) {
-            }
+      parseAndAssertSame(`
+        var a = {
+          b(c) {
           }
-        `)
-      );
+        }
+      `);
     });
 
     it("do not allow import export everywhere", () => {
       assert.throws(() => {
-        parseAndAssertSame("function F() { import a from \"a\"; }");
+        parseAndAssertSame('function F() { import a from "a"; }');
       }, /SyntaxError: 'import' and 'export' may only appear at the top level/);
     });
 
@@ -442,7 +471,7 @@ describe("babylon-to-esprima", () => {
     });
 
     it("super outside method", () => {
-      parseAndAssertSame("function F() { return super(); }");
+      parseAndAssertSame("function F() { super(); }");
     });
 
     it("StringLiteral", () => {
@@ -453,41 +482,35 @@ describe("babylon-to-esprima", () => {
 
     it("getters and setters", () => {
       parseAndAssertSame("class A { get x ( ) { ; } }");
-      parseAndAssertSame(
-        unpad(`
-          class A {
-            get x(
-            )
-            {
-              ;
-            }
+      parseAndAssertSame(`
+        class A {
+          get x(
+          )
+          {
+            ;
           }
-        `)
-      );
+        }
+      `);
       parseAndAssertSame("class A { set x (a) { ; } }");
-      parseAndAssertSame(
-        unpad(`
-          class A {
-            set x(a
-            )
-            {
-              ;
-            }
+      parseAndAssertSame(`
+        class A {
+          set x(a
+          )
+          {
+            ;
           }
-        `)
-      );
-      parseAndAssertSame(
-        unpad(`
-          var B = {
-            get x () {
-              return this.ecks;
-            },
-            set x (ecks) {
-              this.ecks = ecks;
-            }
-          };
-        `)
-      );
+        }
+      `);
+      parseAndAssertSame(`
+        var B = {
+          get x () {
+            return this.ecks;
+          },
+          set x (ecks) {
+            this.ecks = ecks;
+          }
+        };
+      `);
     });
 
     it("RestOperator", () => {
@@ -496,21 +519,27 @@ describe("babylon-to-esprima", () => {
       parseAndAssertSame("var a = function (...b) {}");
     });
 
-    // LightScript: safe spread operator transform breaks this test.
-    // it("SpreadOperator", () => {
-    //   parseAndAssertSame("var a = { b, ...c }");
-    //   parseAndAssertSame("var a = [ a, ...b ]");
-    //   parseAndAssertSame("var a = summa(...b)");
-    // });
+    it("SpreadOperator", () => {
+      parseAndAssertSame("var a = { b, ...c }");
+      parseAndAssertSame("var a = [ a, ...b ]");
+      parseAndAssertSame("var a = sum(...b)");
+    });
 
     it("Async/Await", () => {
-      parseAndAssertSame(
-        unpad(`
-          async function a() {
-            return await 1;
-          }
-        `)
-      );
+      parseAndAssertSame(`
+        async function a() {
+          await 1;
+        }
+      `);
     });
+  });
+});
+
+describe("Public API", () => {
+  it("exports a parseNoPatch function", () => {
+    assertImplementsAST(
+      espree.parse("foo"),
+      babelEslint.parseNoPatch("foo", {})
+    );
   });
 });
