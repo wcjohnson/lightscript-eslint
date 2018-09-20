@@ -1,6 +1,6 @@
 import { parse } from './parse'
 import { analyzeScope } from './scope'
-import { visitorKeys } from './visitor-keys'
+import visitorKeys from './visitor-keys'
 
 export parseForESLint(code, options) -> {
   now options = options || {};
