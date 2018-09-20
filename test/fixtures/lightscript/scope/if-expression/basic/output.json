@@ -1,0 +1,4 @@
+[
+  "1:14 'y' is not defined. no-undef",
+  "1:22 'z' is not defined. no-undef"
+]
