@@ -1,1 +1,1 @@
-for idx i, elem e in []: e
+for key k, val v in {}: k
