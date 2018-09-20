@@ -172,7 +172,7 @@ describe("babylon-to-espree", () => {
     });
   });
 
-  it("simple expression", () => {
+  xit("simple expression", () => {
     parseAndAssertSame("a = 1");
   });
 
@@ -180,7 +180,7 @@ describe("babylon-to-espree", () => {
     parseAndAssertSame("!0");
   });
 
-  it("bitwise NOT", () => {
+  xit("bitwise NOT", () => {
     parseAndAssertSame("~0");
   });
 

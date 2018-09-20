@@ -488,7 +488,8 @@ describe("verify", () => {
         `
           import type Promise from 'bluebird';
           type Operation = () => Promise;
-          x: Operation;
+          let x: Operation = null;
+          x;
         `,
         { "no-unused-vars": 1, "no-undef": 1 }
       );

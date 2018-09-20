@@ -56,7 +56,6 @@ function parseOnly(code, options) {
   };
 
   compilerConfig = tooling.getCompilerConfiguration(options.filePath, code, { parserOpts: opts })
-  console.log("parserConfig for", options.filePath, compilerConfig.getParserOptions())
 
   var ast;
   try {
