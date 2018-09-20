@@ -5,6 +5,7 @@
     "no-const-assign": 1,
     "@lightscript/nowAssign": 1,
     "@lightscript/shadowsImmutable": 1,
-    "@lightscript/shadowsMutable": 1
+    "@lightscript/shadowsMutable": 1,
+    "@lightscript/redeclare": 1
   }
 }

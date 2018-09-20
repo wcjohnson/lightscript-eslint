@@ -1,0 +1,4 @@
+[
+  "1:1 'x', originally defined here, is illegally shadowed later. @lightscript/redeclare",
+  "2:1 Invalid redeclaration: 'x'. @lightscript/redeclare"
+]

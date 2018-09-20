@@ -1,0 +1,4 @@
+[
+  "1:5 'x', originally defined here, is illegally shadowed later. @lightscript/redeclare",
+  "2:1 Implicit const redeclaration of 'x'. To reassign, use 'now'. @lightscript/redeclare"
+]

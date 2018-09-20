@@ -26,12 +26,12 @@ isImplicitConstDecl(node) ->
   node.extra?.implicit
 
 isImmutableDef(def) ->
-  console.log("isImmutableDef", def)
-
   def.type == "FunctionName" or
+  def.type == "ClassName" or
+  def.type == "ImportBinding" or
   def.kind == "const"
 
-isImmutable(v) ->
+isImmutableVar(v) ->
   isImmutableDef(v.defs[0])
 
 getShadowedVar(v) ->
@@ -81,7 +81,7 @@ export shadowsImmutable = {
   }
   create(context) -> {
     VariableDeclaration(node): void -> {
-      checkShadowing(context, node, (pair) -> pair.shadowed~isImmutable())
+      checkShadowing(context, node, (pair) -> pair.shadowed~isImmutableVar())
     }
   }
 }
@@ -104,10 +104,81 @@ export shadowsMutable = {
       checkShadowing(
         context
         node
-        filter(pair) -> not pair.shadowed~isImmutable()
+        filter(pair) -> not pair.shadowed~isImmutableVar()
         makeFixer() ->
           (fixer) -> fixer.insertTextBefore(node, "now ")
       )
+    }
+  }
+}
+
+walkVars(scope, callback): void ->
+  for elem v in (scope.variables or []): callback(scope, v)
+  for elem s in (scope.childScopes or []): walkVars(s, callback)
+
+findDuplicateDeclarations(scope) ->
+  result = []
+  walkVars(scope, (s, v) -> if v.defs.length > 1: result.push(v))
+  result
+
+isImplicitConstDef(def) ->
+  parent = def.parent
+
+  parent and
+  def.kind == 'const' and
+  parent.type == 'VariableDeclaration' and
+  parent.kind == 'const' and
+  parent.extra?.implicit
+
+
+export redeclare = {
+  meta: {
+    docs: {
+      description: "Detect redeclaration of variables"
+      category: "Possible Errors"
+    }
+    messages: {
+      immutable: "Invalid redeclaration: '{{ name }}'."
+      mutable: "Invalid redeclaration: '{{name}}'."
+      mutableImplicitConst: "Implicit const redeclaration of '{{name}}'. To reassign, use 'now'."
+      shadowed: "'{{name}}', originally defined here, is illegally shadowed later."
+    }
+    fixable: false
+    schema: []
+  }
+  create(context) -> {
+    // Only run once
+    Program(node): void -> {
+      scope = context.getScope()
+      dupes = scope~findDuplicateDeclarations()
+      for elem dupe in dupes:
+        [firstDef, ...dupeDefs] = dupe.defs
+        context.report({
+          node: firstDef.node
+          messageId: "shadowed"
+          data: { name: firstDef.name.name }
+        })
+        if firstDef~isImmutableDef():
+          for elem dupeDef in dupeDefs:
+            context.report({
+              node: dupeDef.node
+              messageId: "immutable"
+              data: { name: dupeDef.name.name }
+            })
+        else:
+          for elem dupeDef in dupeDefs:
+            if dupeDef~isImplicitConstDef():
+              context.report({
+                node: dupeDef.node
+                messageId: "mutableImplicitConst"
+                data: { name: dupeDef.name.name }
+              })
+            else:
+              context.report({
+                node: dupeDef.node
+                messageId: "mutable"
+                data: { name: dupeDef.name.name }
+              })
     }
   }
 }
