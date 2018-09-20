@@ -1,4 +1,6 @@
-import { parseAndAnalyzeScope } from './parse'
+import { parse } from './parse'
+import { analyzeScope } from './scope'
+import { visitorKeys } from './visitor-keys'
 
 export parseForESLint(code, options) -> {
   now options = options || {};
@@ -12,4 +14,11 @@ export parseForESLint(code, options) -> {
   } else {
     throw new Error("ESLint is too old; update your version.");
   }
+}
+
+parseAndAnalyzeScope(code, options) -> {
+  ast = parse(code, options)
+  scopeManager = analyzeScope(ast, options)
+
+  { ast, scopeManager, visitorKeys }
 }

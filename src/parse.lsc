@@ -14,7 +14,7 @@ export function parseAndAnalyzeScope(code, options) {
   return { ast, scopeManager, visitorKeys };
 }
 
-function parseOnly(code, options) {
+export function parse(code, options) {
   const legacyDecorators =
     options.ecmaFeatures && options.ecmaFeatures.legacyDecorators;
 
@@ -94,6 +94,8 @@ function parseOnly(code, options) {
   }
 
   babylonToEspree(ast, traverse, tt, code);
+
+  console.log("ast", ast)
 
   return ast;
 }

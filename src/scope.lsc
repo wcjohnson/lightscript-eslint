@@ -1,0 +1,123 @@
+import analyze from './analyze-scope'
+
+import { Reference } from 'eslint-scope'
+Definition = require("eslint-scope/lib/definition").Definition
+
+class LscReferencer extends analyze.Referencer {
+  LscTildeCallExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscOptionalTildeCallExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  visitEnhancedForInVarDecl(node, key, iterateeKey) -> {
+    if not node[key]: return
+    this.visitPattern(node[key], { processRightHandNodes: true }, (pattern, info) => {
+      this.referencingDefaultValue(pattern, info.assignments, null, false);
+      this.currentScope().__referencing(pattern, Reference.WRITE, node[iterateeKey], null, true, false);
+      this.currentScope().__define(
+        pattern,
+        new Definition("Variable", pattern, node, null, null, "const")
+      )
+    })
+  }
+
+  visitEnhancedForIn(node) -> {
+    this.scopeManager.__nestForScope(node)
+    this.visitEnhancedForInVarDecl(node, "elem", "array")
+    this.visitEnhancedForInVarDecl(node, "idx", "array")
+    this.visitEnhancedForInVarDecl(node, "key", "object")
+    this.visitEnhancedForInVarDecl(node, "val", "object")
+    if node.array: this.visit(node.array)
+    if node.object: this.visit(node.object)
+    this.visit(node.body)
+    this.close(node)
+  }
+
+  LscForInArrayStatement(node) -> {
+    this.visitEnhancedForIn(node)
+  }
+
+  LscForInObjectStatement(node) -> {
+    this.visitEnhancedForIn(node)
+  }
+
+  LscSpreadLoop(node) -> {
+    this.visit(node.loop)
+  }
+
+  LscNamedArrowDeclaration(node) -> {
+    if node.skinny:
+      // Basically a FunctionDeclaration
+      node.type = "FunctionDeclaration"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowDeclaration"
+    else:
+      // Like a const var declaration...
+      this.currentScope().__define(
+        node.id,
+        new Definition("Variable", node.id, node, null, null, "const")
+      )
+      // ...together with an ArrowFunctionExpression
+      node.type = "ArrowFunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowDeclaration"
+  }
+
+  LscNamedArrowExpression(node) -> {
+    if node.skinny:
+      node.type = "FunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowExpression"
+    else:
+      // XXX: Named fat arrow expression has its name dropped. (unfortunate)
+      node.type = "ArrowFunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowExpression"
+  }
+
+  LscNamedArrowMemberExpression(node) -> {
+    this.visit(node.object)
+    this.LscNamedArrowExpression(node)
+  }
+
+  LscIfExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscMatchExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscMatchStatement(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscMatchCase(node) -> {
+    // XXX: handle bindings
+    this.visitChildren(node)
+  }
+
+  LscMatchElse(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscMatchPlaceholderExpression(node) -> {
+  }
+
+  LscPlaceholderExpression(node) -> {
+  }
+
+  LscTryExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscSafeAwaitExpression(node) -> {
+    this.visitChildren(node)
+  }
+}
+
+export analyzeScope(ast, options) ->
+  analyze(ast, options, null, LscReferencer)

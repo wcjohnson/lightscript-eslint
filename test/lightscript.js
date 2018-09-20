@@ -80,13 +80,202 @@ function verifyAndAssertMessages(
 
 describe("lightscript", () => {
   describe("named arrow functions", () => {
-    it("check regular function", () => {
+    it("skinny", () => {
       verifyAndAssertMessages(
         `
         f() -> 1
         f()
         `,
         { "no-unused-vars": 1, "no-undef": 1 }
+      );
+    });
+    it("skinny args", () => {
+      verifyAndAssertMessages(
+        `
+        f(x) -> x
+        f(1)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 }
+      );
+    });
+    it("skinny args complex", () => {
+      verifyAndAssertMessages(
+        `
+        f([x, y], ...z) -> x + y + z
+        f([1, 2], 3)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 }
+      );
+    });
+    it("skinny args complex unused", () => {
+      verifyAndAssertMessages(
+        `
+        f([x, y], ...z) -> x + y
+        f([1, 2], 3)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["1:14 'z' is defined but never used. no-unused-vars"]
+      );
+    });
+    it("skinny args complex undef", () => {
+      verifyAndAssertMessages(
+        `
+        f([x, y], ...z) -> x + y + z + w
+        f([1, 2], 3)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["1:32 'w' is not defined. no-undef"]
+      );
+    });
+    it("fat", () => {
+      verifyAndAssertMessages(
+        `
+        f() => 1
+        f()
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 }
+      );
+    });
+    it("fat unused", () => {
+      verifyAndAssertMessages(
+        `
+        f() => 1
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["1:1 'f' is defined but never used. no-unused-vars"]
+      );
+    });
+    it("fat args complex", () => {
+      verifyAndAssertMessages(
+        `
+        f([x, y], ...z) => x + y + z
+        f([1, 2], 3)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 }
+      );
+    });
+    it("fat args complex unused", () => {
+      verifyAndAssertMessages(
+        `
+        f([x, y], ...z) => x + y
+        f([1, 2], 3)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["1:14 'z' is defined but never used. no-unused-vars"]
+      );
+    });
+    it("fat args complex undef", () => {
+      verifyAndAssertMessages(
+        `
+        f([x, y], ...z) => x + y + z + w
+        f([1, 2], 3)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["1:32 'w' is not defined. no-undef"]
+      );
+    });
+  });
+
+  describe("tilde calls", () => {
+    it("basic", () => {
+      verifyAndAssertMessages(
+        `
+        f(x) -> x
+        a = 1
+        a~f()
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 }
+      );
+    });
+    it("undef left", () => {
+      verifyAndAssertMessages(
+        `
+        f(x) -> x
+        a~f()
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["2:1 'a' is not defined. no-undef"]
+      );
+    });
+    it("undef right", () => {
+      verifyAndAssertMessages(
+        `
+        a = 1
+        a~f()
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["2:3 'f' is not defined. no-undef"]
+      );
+    });
+  });
+
+  describe("optional tilde calls", () => {
+    it("basic", () => {
+      verifyAndAssertMessages(
+        `
+        f(x) -> x
+        a = 1
+        a~f?()
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 }
+      );
+    });
+    it("undef left", () => {
+      verifyAndAssertMessages(
+        `
+        f(x) -> x
+        a?~f()
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["2:1 'a' is not defined. no-undef"]
+      );
+    });
+    it("undef right", () => {
+      verifyAndAssertMessages(
+        `
+        a = 1
+        a~f?()
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["2:3 'f' is not defined. no-undef"]
+      );
+    });
+  });
+
+  describe("for-in-array", () => {
+    it("basic", () => {
+      verifyAndAssertMessages(
+        `
+        for idx i, elem e in []: (i, e)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 }
+      );
+    });
+    it("unused idx", () => {
+      verifyAndAssertMessages(
+        `
+        for idx i, elem e in []: e
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["1:9 'i' is assigned a value but never used. no-unused-vars"]
+      );
+    });
+    it("unused elem", () => {
+      verifyAndAssertMessages(
+        `
+        for idx i, elem e in []: i
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["1:17 'e' is assigned a value but never used. no-unused-vars"]
+      );
+    });
+    it("undef iteratee", () => {
+      verifyAndAssertMessages(
+        `
+        for idx i, elem e in x: (i, e)
+        `,
+        { "no-unused-vars": 1, "no-undef": 1 },
+        ["1:22 'x' is not defined. no-undef"]
       );
     });
   });
