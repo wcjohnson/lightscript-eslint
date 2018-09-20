@@ -1,17 +1,15 @@
-exports.parse = function(code, options) {
-  return exports.parseForESLint(code, options).ast;
-};
+import { parseAndAnalyzeScope } from './parse'
 
-exports.parseForESLint = function(code, options) {
-  options = options || {};
+export parseForESLint(code, options) -> {
+  now options = options || {};
   options.ecmaVersion = options.ecmaVersion || 2018;
   options.sourceType = options.sourceType || "module";
   options.allowImportExportEverywhere =
     options.allowImportExportEverywhere || false;
 
   if (options.eslintVisitorKeys && options.eslintScopeManager) {
-    return require("./parse-with-scope")(code, options);
+    return parseAndAnalyzeScope(code, options);
   } else {
     throw new Error("ESLint is too old; update your version.");
   }
-};
+}
