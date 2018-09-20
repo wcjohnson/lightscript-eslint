@@ -1,0 +1,3 @@
+[
+  "2:3 'x' is assigned a value but never used. no-unused-vars"
+]
