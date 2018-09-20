@@ -1,7 +1,7 @@
 {
-  "name": "@lightscript/eslint",
+  "name": "@lightscript/eslint-plugin",
   "version": "4.0.0-alpha.1",
-  "description": "LightScript parser for ESLint, based on babel-eslint",
+  "description": "LightScript plugin for the ESLint linter.",
   "main": "lib/index.js",
   "files": [
     "lib"
@@ -24,6 +24,7 @@
     "test:only": "run-s test:mocha test:jest",
     "test:mocha": "mocha",
     "test:jest": "jest",
+    "test:lightscript": "run-s build test:jest",
     "preversion": "run-s test",
     "changelog": "git log `git describe --tags --abbrev=0`..HEAD --pretty=format:' * %s (%an)' | grep -v 'Merge pull request'"
   },
