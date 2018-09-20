@@ -1,4 +1,4 @@
 [
-  "1:5 'x', originally defined here, is illegally shadowed later. @lightscript/redeclare",
-  "2:1 Implicit const redeclaration of 'x'. To reassign, use 'now'. @lightscript/redeclare"
+  "1:5 'x', originally defined here, is illegally shadowed later. @lightscript/variables",
+  "2:1 'x' shadows a mutable binding. Use `now` to reassign. @lightscript/variables"
 ]
