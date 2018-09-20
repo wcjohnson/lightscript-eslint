@@ -1,4 +1,5 @@
 import analyze from './analyze-scope'
+import visitorKeys from './visitor-keys'
 
 import { Reference } from 'eslint-scope'
 Definition = require("eslint-scope/lib/definition").Definition
@@ -79,7 +80,7 @@ class LscReferencer extends analyze.Referencer {
       node.type = "LscNamedArrowDeclaration"
   }
 
-  LscNamedArrowExpression(node) -> {
+  LscNamedArrowExpression(node): void -> {
     if node.skinny:
       node.type = "FunctionExpression"
       this.visitFunction(node)
@@ -91,9 +92,16 @@ class LscReferencer extends analyze.Referencer {
       node.type = "LscNamedArrowExpression"
   }
 
-  LscNamedArrowMemberExpression(node) -> {
+  LscNamedArrowMemberExpression(node): void -> {
     this.visit(node.object)
-    this.LscNamedArrowExpression(node)
+    if node.skinny:
+      node.type = "FunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowMemberExpression"
+    else:
+      node.type = "ArrowFunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowMemberExpression"
   }
 
   LscIfExpression(node) -> {
