@@ -12,11 +12,12 @@ class LscReferencer extends analyze.Referencer {
     this.visitChildren(node)
   }
 
-  visitEnhancedForInVarDecl(node, key, iterateeKey) -> {
+  visitEnhancedForInVarDecl(node, key, iteratee) -> {
     if not node[key]: return
     this.visitPattern(node[key], { processRightHandNodes: true }, (pattern, info) => {
       this.referencingDefaultValue(pattern, info.assignments, null, false);
-      this.currentScope().__referencing(pattern, Reference.WRITE, node[iterateeKey], null, true, false);
+      if iteratee:
+        this.currentScope().__referencing(pattern, Reference.WRITE, iteratee, null, true, false);
       this.currentScope().__define(
         pattern,
         new Definition("Variable", pattern, node, null, null, "const")
@@ -26,14 +27,26 @@ class LscReferencer extends analyze.Referencer {
 
   visitEnhancedForIn(node) -> {
     this.scopeManager.__nestForScope(node)
-    this.visitEnhancedForInVarDecl(node, "elem", "array")
-    this.visitEnhancedForInVarDecl(node, "idx", "array")
-    this.visitEnhancedForInVarDecl(node, "key", "object")
-    this.visitEnhancedForInVarDecl(node, "val", "object")
+    this.visitEnhancedForInVarDecl(node, "elem", node.array)
+    this.visitEnhancedForInVarDecl(node, "idx", node.array)
+    this.visitEnhancedForInVarDecl(node, "key", node.object)
+    this.visitEnhancedForInVarDecl(node, "val", node.object)
     if node.array: this.visit(node.array)
     if node.object: this.visit(node.object)
     this.visit(node.body)
     this.close(node)
+  }
+
+  // Auto-const for-in and for-of
+  visitForIn(node): void -> {
+    if node.left.type != "VariableDeclaration":
+      this.scopeManager.__nestForScope(node)
+      this.visitEnhancedForInVarDecl(node, "left", node.right)
+      this.visit(node.right)
+      this.visit(node.body)
+      this.close(node)
+    else:
+      super.visitForIn(node)
   }
 
   LscForInArrayStatement(node) -> {
