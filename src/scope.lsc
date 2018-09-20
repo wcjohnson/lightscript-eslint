@@ -1,4 +1,151 @@
 import analyze from './analyze-scope'
+import visitorKeys from './visitor-keys'
+
+import { Reference } from 'eslint-scope'
+Definition = require("eslint-scope/lib/definition").Definition
+
+class LscReferencer extends analyze.Referencer {
+  LscTildeCallExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscOptionalTildeCallExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  visitImplicitConstDecl(node, patternContainer, iteratee) -> {
+    if not patternContainer: return
+    this.visitPattern(patternContainer, { processRightHandNodes: true }, (pattern, info) => {
+      this.referencingDefaultValue(pattern, info.assignments, null, false);
+      if iteratee:
+        this.currentScope().__referencing(pattern, Reference.WRITE, iteratee, null, true, false);
+      this.currentScope().__define(
+        pattern,
+        new Definition("Variable", pattern, node, null, null, "const")
+      )
+    })
+  }
+
+  visitEnhancedForIn(node) -> {
+    this.scopeManager.__nestForScope(node)
+    this.visitImplicitConstDecl(node, node.elem, node.array)
+    this.visitImplicitConstDecl(node, node.idx, node.array)
+    this.visitImplicitConstDecl(node, node.key, node.object)
+    this.visitImplicitConstDecl(node, node.val, node.object)
+    if node.array: this.visit(node.array)
+    if node.object: this.visit(node.object)
+    this.visit(node.body)
+    this.close(node)
+  }
+
+  // Auto-const for-in and for-of
+  visitForIn(node): void -> {
+    if node.left.type != "VariableDeclaration":
+      this.scopeManager.__nestForScope(node)
+      this.visitImplicitConstDecl(node, node.left, node.right)
+      this.visit(node.right)
+      this.visit(node.body)
+      this.close(node)
+    else:
+      super.visitForIn(node)
+  }
+
+  LscForInArrayStatement(node) -> {
+    this.visitEnhancedForIn(node)
+  }
+
+  LscForInObjectStatement(node) -> {
+    this.visitEnhancedForIn(node)
+  }
+
+  LscSpreadLoop(node) -> {
+    this.visit(node.loop)
+  }
+
+  LscNamedArrowDeclaration(node) -> {
+    if node.skinny:
+      // Basically a FunctionDeclaration
+      node.type = "FunctionDeclaration"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowDeclaration"
+    else:
+      // Like a const var declaration...
+      this.currentScope().__define(
+        node.id,
+        new Definition("Variable", node.id, node, null, null, "const")
+      )
+      // ...together with an ArrowFunctionExpression
+      node.type = "ArrowFunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowDeclaration"
+  }
+
+  LscNamedArrowExpression(node): void -> {
+    if node.skinny:
+      node.type = "FunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowExpression"
+    else:
+      // XXX: Named fat arrow expression has its name dropped. (unfortunate)
+      node.type = "ArrowFunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowExpression"
+  }
+
+  LscNamedArrowMemberExpression(node): void -> {
+    this.visit(node.object)
+    if node.skinny:
+      node.type = "FunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowMemberExpression"
+    else:
+      node.type = "ArrowFunctionExpression"
+      this.visitFunction(node)
+      node.type = "LscNamedArrowMemberExpression"
+  }
+
+  LscIfExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscMatchExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscMatchStatement(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscMatchCase(node): void -> {
+    if node.outerGuard: this.visit(node.outerGuard)
+    if node.atoms: for elem atom in node.atoms: this.visit(atom)
+
+    if node.binding:
+      this.scopeManager.__nestBlockScope(node)
+      this.visitImplicitConstDecl(node, node.binding, null)
+
+    if node.innerGuard: this.visit(node.innerGuard)
+    if node.consequent: this.visit(node.consequent)
+    if node.binding: this.close(node)
+  }
+
+  LscMatchElse(node) -> {
+  }
+
+  LscMatchPlaceholderExpression(node) -> {
+  }
+
+  LscPlaceholderExpression(node) -> {
+  }
+
+  LscTryExpression(node) -> {
+    this.visitChildren(node)
+  }
+
+  LscSafeAwaitExpression(node) -> {
+    this.visitChildren(node)
+  }
+}
 
 export analyzeScope(ast, options) ->
-  analyze(ast, options)
+  analyze(ast, options, null, LscReferencer)

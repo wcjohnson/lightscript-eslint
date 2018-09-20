@@ -1,0 +1,8 @@
+[
+  "2:3 'y' is assigned a value but never used. no-unused-vars",
+  "3:3 'f' is not defined. no-undef",
+  "5:3 'z' is assigned a value but never used. no-unused-vars",
+  "6:3 'g' is not defined. no-undef",
+  "8:3 'w' is assigned a value but never used. no-unused-vars",
+  "9:3 'h' is not defined. no-undef"
+]

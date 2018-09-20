@@ -86,5 +86,8 @@ export function parse(code, options) {
 
   babylonToEspree(ast, traverse, tt, code);
 
+  if options._dumpAst:
+    console.log("ast", ast)
+
   return ast;
 }

@@ -1,0 +1,4 @@
+[
+  "2:16 'e' is defined but never used. no-unused-vars",
+  "2:30 'f' is not defined. no-undef"
+]
