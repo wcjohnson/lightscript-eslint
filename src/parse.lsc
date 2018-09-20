@@ -1,20 +1,11 @@
 import { tooling } from '@lightscript/transform'
 
-const visitorKeys = require("./visitor-keys");
-const analyzeScope = require("./analyze-scope");
 var babylonToEspree = require("./babylon-to-espree");
 var tt = require("@lightscript/transform").parser.tokTypes;
 var traverse = require("@lightscript/transform").traverse;
 var codeFrameColumns = require("@babel/code-frame").codeFrameColumns;
 
-export function parseAndAnalyzeScope(code, options) {
-  const ast = parseOnly(code, options);
-  const scopeManager = analyzeScope(ast, options);
-
-  return { ast, scopeManager, visitorKeys };
-}
-
-function parseOnly(code, options) {
+export function parse(code, options) {
   const legacyDecorators =
     options.ecmaFeatures && options.ecmaFeatures.legacyDecorators;
 
