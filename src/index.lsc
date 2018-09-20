@@ -1,6 +1,7 @@
 import { parse } from './parse'
 import { analyzeScope } from './scope'
 import visitorKeys from './visitor-keys'
+import * as rules from './rules'
 
 export parseForESLint(code, options) -> {
   now options = options || {};
@@ -22,3 +23,5 @@ parseAndAnalyzeScope(code, options) -> {
 
   { ast, scopeManager, visitorKeys }
 }
+
+export { rules }

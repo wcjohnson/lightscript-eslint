@@ -1,0 +1,113 @@
+export nowAssign = {
+  meta: {
+    docs: {
+      description: "Detect missing 'now' in assignments"
+      category: "Possible Errors"
+    }
+    fixable: false
+    schema: []
+  }
+  create(context) -> {
+    AssignmentExpression(node): void -> {
+      // Don't enforce `now` with MemberExprs
+      if node.left.type == "MemberExpression" or node.left.type == "OptionalMemberExpression": return
+
+      if not node.isNowAssign:
+        context.report({
+          node
+          message: "Incorrect assignment. To reassign, use `now`. To assign as `const`, put on a separate line."
+        })
+    }
+  }
+}
+
+isImplicitConstDecl(node) ->
+  node.kind == "const" and
+  node.extra?.implicit
+
+isImmutableDef(def) ->
+  console.log("isImmutableDef", def)
+
+  def.type == "FunctionName" or
+  def.kind == "const"
+
+isImmutable(v) ->
+  isImmutableDef(v.defs[0])
+
+getShadowedVar(v) ->
+  v.scope?.upper?.set.get(v.name)
+
+getShadowedPairs(vs) ->
+  [...for elem v in vs:
+    sv = v~getShadowedVar()
+    if sv: [{ shadow: v, shadowed: sv }]
+  ]
+
+checkShadowing(context, node, pairFilter, shadowFixer) ->
+  if not node~isImplicitConstDecl(): return
+
+  shadowedPairs = context
+    .getDeclaredVariables(node)
+    ~getShadowedPairs()
+    .filter(pairFilter)
+
+  for elem { shadow, shadowed } in shadowedPairs:
+    context.report({
+      node: shadow.defs[0]?.name or node
+      messageId: "shadow"
+      ...if shadowFixer: { fix: shadowFixer(shadow) }
+      data: { name: shadow.name }
+    })
+
+    // Report shadowee as well
+    if shadowed.defs[0]?.name:
+      context.report({
+        node: shadowed.defs[0]?.name
+        messageId: "shadowed"
+      })
+
+export shadowsImmutable = {
+  meta: {
+    docs: {
+      description: "Detect implicit 'const' shadowing an immutable binding"
+      category: "Possible Errors"
+    }
+    messages: {
+      shadow: "Implicit const '{{ name }}' would shadow an immutable binding from a higher scope. Rename the variable or use explicit 'const' to create a new shadowing variable."
+      shadowed: "This declaration is shadowed by an implicit const variable in a lower scope."
+    }
+    fixable: false
+    schema: []
+  }
+  create(context) -> {
+    VariableDeclaration(node): void -> {
+      checkShadowing(context, node, (pair) -> pair.shadowed~isImmutable())
+    }
+  }
+}
+
+export shadowsMutable = {
+  meta: {
+    docs: {
+      description: "Detect implicit 'const' shadowing a mutable binding"
+      category: "Possible Errors"
+    }
+    messages: {
+      shadow: "Implicit const '{{ name }}' would shadow a mutable binding from a higher scope. Use 'now' to assign a new value. Use explicit 'const' to create a new shadowing variable."
+      shadowed: "This declaration is shadowed by an implicit const variable in a lower scope."
+    }
+    fixable: true
+    schema: []
+  }
+  create(context) -> {
+    VariableDeclaration(node): void -> {
+      checkShadowing(
+        context
+        node
+        filter(pair) -> not pair.shadowed~isImmutable()
+        makeFixer() ->
+          (fixer) -> fixer.insertTextBefore(node, "now ")
+      )
+    }
+  }
+}

@@ -1,0 +1,4 @@
+[
+  "1:1 This declaration is shadowed by an implicit const variable in a lower scope. @lightscript/shadowsImmutable",
+  "3:3 Implicit const 'x' would shadow an immutable binding from a higher scope. Rename the variable or use explicit 'const' to create a new shadowing variable. @lightscript/shadowsImmutable"
+]
