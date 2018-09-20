@@ -13,9 +13,9 @@ class LscReferencer extends analyze.Referencer {
     this.visitChildren(node)
   }
 
-  visitEnhancedForInVarDecl(node, key, iteratee) -> {
-    if not node[key]: return
-    this.visitPattern(node[key], { processRightHandNodes: true }, (pattern, info) => {
+  visitImplicitConstDecl(node, patternContainer, iteratee) -> {
+    if not patternContainer: return
+    this.visitPattern(patternContainer, { processRightHandNodes: true }, (pattern, info) => {
       this.referencingDefaultValue(pattern, info.assignments, null, false);
       if iteratee:
         this.currentScope().__referencing(pattern, Reference.WRITE, iteratee, null, true, false);
@@ -28,10 +28,10 @@ class LscReferencer extends analyze.Referencer {
 
   visitEnhancedForIn(node) -> {
     this.scopeManager.__nestForScope(node)
-    this.visitEnhancedForInVarDecl(node, "elem", node.array)
-    this.visitEnhancedForInVarDecl(node, "idx", node.array)
-    this.visitEnhancedForInVarDecl(node, "key", node.object)
-    this.visitEnhancedForInVarDecl(node, "val", node.object)
+    this.visitImplicitConstDecl(node, node.elem, node.array)
+    this.visitImplicitConstDecl(node, node.idx, node.array)
+    this.visitImplicitConstDecl(node, node.key, node.object)
+    this.visitImplicitConstDecl(node, node.val, node.object)
     if node.array: this.visit(node.array)
     if node.object: this.visit(node.object)
     this.visit(node.body)
@@ -42,7 +42,7 @@ class LscReferencer extends analyze.Referencer {
   visitForIn(node): void -> {
     if node.left.type != "VariableDeclaration":
       this.scopeManager.__nestForScope(node)
-      this.visitEnhancedForInVarDecl(node, "left", node.right)
+      this.visitImplicitConstDecl(node, node.left, node.right)
       this.visit(node.right)
       this.visit(node.body)
       this.close(node)
@@ -116,13 +116,20 @@ class LscReferencer extends analyze.Referencer {
     this.visitChildren(node)
   }
 
-  LscMatchCase(node) -> {
-    // XXX: handle bindings
-    this.visitChildren(node)
+  LscMatchCase(node): void -> {
+    if node.outerGuard: this.visit(node.outerGuard)
+    if node.atoms: for elem atom in node.atoms: this.visit(atom)
+
+    if node.binding:
+      this.scopeManager.__nestBlockScope(node)
+      this.visitImplicitConstDecl(node, node.binding, null)
+
+    if node.innerGuard: this.visit(node.innerGuard)
+    if node.consequent: this.visit(node.consequent)
+    if node.binding: this.close(node)
   }
 
   LscMatchElse(node) -> {
-    this.visitChildren(node)
   }
 
   LscMatchPlaceholderExpression(node) -> {
