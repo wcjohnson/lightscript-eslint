@@ -7,7 +7,7 @@ import fs from 'fs'
 import { TestRun, Testable, TestOptions } from './TestRunner'
 import { allTests, TestFilter } from './TestFilter'
 import diff from 'jest-diff'
-eslint = require("eslint")
+import { CLIEngine } from 'eslint'
 thisPlugin = require.resolve("../..")
 
 class LinterTestOptions extends TestOptions:
@@ -74,9 +74,22 @@ class LinterTestable extends Testable:
     let messages, realOpts
     try {
       now realOpts = Object.assign({}, this.options)
-      realOpts.parser = thisPlugin
+      realOpts.parser = '@lightscript/eslint-plugin'
+      realOpts.plugins = ['@lightscript/eslint-plugin']
+      // console.log("realOpts", realOpts)
 
-      now messages = (new eslint.Linter()).verify(this.actual, realOpts).map(
+      cliEngineOpts = {
+        baseConfig: realOpts
+        ignore: false
+        useEslintrc: false
+      }
+
+      engine = new CLIEngine(cliEngineOpts)
+      // console.log("rules", engine.getRules())
+      results = engine.executeOnText(this.actual)
+      // console.log("results", results)
+
+      now messages = results.results[0].messages.map(
         message ->
           `${message.line}:${message.column} ${
               message.message

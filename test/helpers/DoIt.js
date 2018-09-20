@@ -28,9 +28,10 @@ var _jestDiff = require('jest-diff');
 
 var _jestDiff2 = _interopRequireDefault(_jestDiff);
 
+var _eslint = require('eslint');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const eslint = require("eslint");
 const thisPlugin = require.resolve("../..");
 
 let LinterTestOptions = class LinterTestOptions extends _TestRunner.TestOptions {
@@ -95,9 +96,22 @@ let LinterTestable = class LinterTestable extends _TestRunner.Testable {
     let messages, realOpts;
     try {
       realOpts = Object.assign({}, this.options);
-      realOpts.parser = thisPlugin;
+      realOpts.parser = '@lightscript/eslint-plugin';
+      realOpts.plugins = ['@lightscript/eslint-plugin'];
+      // console.log("realOpts", realOpts)
 
-      messages = new eslint.Linter().verify(this.actual, realOpts).map(function (message) {
+      const cliEngineOpts = {
+        baseConfig: realOpts,
+        ignore: false,
+        useEslintrc: false
+      };
+
+      const engine = new _eslint.CLIEngine(cliEngineOpts);
+      // console.log("rules", engine.getRules())
+      const results = engine.executeOnText(this.actual);
+      // console.log("results", results)
+
+      messages = results.results[0].messages.map(function (message) {
         return `${message.line}:${message.column} ${message.message}${message.ruleId ? ` ${message.ruleId}` : ""}`;
       });
     } catch (err) {
