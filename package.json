@@ -19,8 +19,11 @@
   "scripts": {
     "build": "run-s build:plain",
     "build:plain": "babel -x \".js\",\".lsc\" src --out-dir lib",
+    "build:runner": "babel -x \".lsc\" test/helpers --out-dir test/helpers",
     "test": "run-s build test:only",
-    "test:only": "mocha",
+    "test:only": "run-s test:mocha test:jest",
+    "test:mocha": "mocha",
+    "test:jest": "jest",
     "preversion": "run-s test",
     "changelog": "git log `git describe --tags --abbrev=0`..HEAD --pretty=format:' * %s (%an)' | grep -v 'Merge pull request'"
   },
@@ -42,6 +45,7 @@
     "espree": "^3.5.2",
     "lint-staged": "^7.2.2",
     "mocha": "^5.0.1",
+    "jest": "^23.6.0",
     "prettier": "^1.4.4",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
@@ -52,6 +56,21 @@
     "*.js": [
       "eslint --format=codeframe --fix",
       "git add"
+    ]
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "lsc"
+    ],
+    "transform": {
+      "\\.lsc$": "<rootDir>/lightscript.jest.js"
+    },
+    "testRegex": "test/index\\.lsc$",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/lib/"
     ]
   }
 }

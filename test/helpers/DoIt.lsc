@@ -1,0 +1,162 @@
+import path from 'path'
+import vm from 'vm'
+import assert from 'assert'
+import resolve from 'resolve'
+import fs from 'fs'
+
+import { TestRun, Testable, TestOptions } from './TestRunner'
+import { allTests, TestFilter } from './TestFilter'
+import diff from 'jest-diff'
+eslint = require("eslint")
+thisPlugin = require.resolve("../..")
+
+class LinterTestOptions extends TestOptions:
+  inherits(other): void ->
+    super.inherits(other)
+
+  assign(other): void ->
+    nextParserOpts = Object.assign({}, this.parserOptions, other.parserOptions)
+    Object.assign(this, other, { parserOptions: nextParserOpts })
+
+class LinterTestable extends Testable:
+  loadTest(): void ->
+    this.loadTestData()
+    this.enqueueTest()
+
+  readTestOptions() ->
+    optionsData = this.readLocalArtifact("options.json", false)
+    options = if optionsData: JSON.parse(optionsData) else: {}
+    // Allow test options to be overridden
+    overrideData = this.readLocalArtifact("options.override.json", false)
+    if overrideData:
+      Object.assign(options, JSON.parse(overrideData))
+    options
+
+  loadTestData(): void ->
+    if this.name and this.name[0] == '.':
+      this.disabled = true
+      return
+
+    options = this.readTestOptions()
+    if options: this.options.assign(options)
+    //console.log("Test options:", this.title, this.options)
+
+    this.actual = this.readLocalArtifact("input", ['.js', '.lsc'])
+    this.expected = this.readLocalArtifact("output", ['.json'])
+    if this.expected: this.expected = JSON.parse(this.expected)
+
+    // Use parent input if no child input.
+    if (not this.actual) and (this.parent) and (this.parent.actual):
+      if not this.expected: this.expected = this.parent.expected
+      this.actual = this.parent.actual
+
+  enqueueTest(): void ->
+    if this.disabled:
+      if typeof(it) != 'undefined':
+        it.skip(this.title, => this.runTest())
+      else:
+        console.log("Skipped test:", this.title)
+    elif this.actual:
+      if typeof(it) != 'undefined':
+        it(this.title, => this.runTest())
+      else:
+        console.log("Ran test:", this.title)
+    else:
+      // console.log("skipping (no input)", this.title)
+      return
+
+  throwAnnotatedError(err): void ->
+    // Unnecessary because jest is good
+    // err.message = this.title + ": " + err.message
+    throw err
+
+  runTest(): void ->
+    let messages, realOpts
+    try {
+      now realOpts = Object.assign({}, this.options)
+      realOpts.parser = thisPlugin
+
+      now messages = (new eslint.Linter()).verify(this.actual, realOpts).map(
+        message ->
+          `${message.line}:${message.column} ${
+              message.message
+            }${message.ruleId ? ` ${message.ruleId}` : ""}`
+      )
+    } catch(err) {
+      if this.options.throws:
+        if err.message.indexOf(this.options.throws) > -1:
+          return
+        elif process.env.SAVE_THROWS:
+          this.saveThrows(err)
+          this.throwAnnotatedError(err)
+        else:
+          err.message = `Expected error message: '${this.options.throws}'. Got error message: '${err.message}'`
+          this.throwAnnotatedError(err)
+      elif (not this.expected) and (process.env.SAVE_THROWS):
+        this.saveThrows(err)
+
+      this.throwAnnotatedError(err)
+    }
+
+    if this.options.throws:
+      this.throwAnnotatedError(new Error(`Expected error message '${this.options.throws}' but no error was thrown.`))
+
+    if ((not this.expected) or (process.env.FORCE_SAVE)) and (not this.options.throws) and (process.env.SAVE_EXPECTED):
+      this.saveExpected(messages, "output.json")
+      return
+
+    if this.options.throws:
+      this.throwAnnotatedError(new Error(
+        "Expected error message: " + this.options.throws + ". But test succeeded."
+      ))
+    else:
+      if this.expected:
+        this.mismatchExpected(this.expected, messages)
+      else:
+        this.throwAnnotatedError(new Error("Empty expected output -- use SAVE_EXPECTED=1 to create expected output."))
+
+  mismatchExpected(expected, messages) ->
+    let mismatch
+    if expected.length != messages.length:
+      now mismatch = `Expected ${expected.length} message(s), got ${
+        messages.length
+      }\n${JSON.stringify(messages, null, 2)}`
+    else:
+      messages.forEach((message, i) => {
+        if (message !== expected[i]) {
+          now mismatch = `
+            Message ${i} does not match:
+            Expected: ${expected[i]}
+            Actual:   ${message}
+          `
+        }
+      })
+
+    if mismatch:
+      if process.env.UPDATE_EXPECTED:
+        this.saveExpected(messages, "output.json")
+      else:
+        this.throwAnnotatedError(new Error(mismatch))
+
+  saveExpected(expected, filename): void ->
+    this.saveLocalArtifact(filename, JSON.stringify(expected, null, 2))
+
+  saveErrorOverride(throws) ->
+    this.saveLocalArtifact("options.override.json", JSON.stringify({throws}))
+
+  saveThrows(err): void ->
+    const opts = this.readTestOptions() or {}
+    opts.throws = err.message
+    this.saveLocalArtifact("options.json", JSON.stringify(opts, null, "  "))
+
+run = new TestRun()
+run.getTestableConstructor() -> LinterTestable
+run.getOptionsConstructor() -> LinterTestOptions
+
+filter = new TestFilter()
+if process.env.ONLY:
+  filter.only(process.env.ONLY)
+
+rootTestable = new LinterTestable(run, null, filter)
+rootTestable.setTestPath(path.join(__dirname, '../fixtures'))
+rootTestable.readTestDirectory()
