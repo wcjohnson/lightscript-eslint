@@ -1,14 +1,14 @@
 [
-  "2:4 Unnecessary comma. @lightscript/unnecessaryComma",
-  "6:10 Unnecessary comma. @lightscript/unnecessaryComma",
-  "8:16 Unnecessary comma. @lightscript/unnecessaryComma",
-  "13:7 Unnecessary comma. @lightscript/unnecessaryComma",
-  "14:8 Unnecessary comma. @lightscript/unnecessaryComma",
-  "15:5 Unnecessary comma. @lightscript/unnecessaryComma",
-  "20:5 Unnecessary comma. @lightscript/unnecessaryComma",
-  "21:5 Unnecessary comma. @lightscript/unnecessaryComma",
-  "22:5 Unnecessary comma. @lightscript/unnecessaryComma",
-  "25:5 Unnecessary comma. @lightscript/unnecessaryComma",
-  "26:9 Unnecessary comma. @lightscript/unnecessaryComma",
-  "30:7 Unnecessary comma. @lightscript/unnecessaryComma"
+  "2:4 Unnecessary comma. @lightscript/unnecessary-comma",
+  "6:10 Unnecessary comma. @lightscript/unnecessary-comma",
+  "8:16 Unnecessary comma. @lightscript/unnecessary-comma",
+  "13:7 Unnecessary comma. @lightscript/unnecessary-comma",
+  "14:8 Unnecessary comma. @lightscript/unnecessary-comma",
+  "15:5 Unnecessary comma. @lightscript/unnecessary-comma",
+  "20:5 Unnecessary comma. @lightscript/unnecessary-comma",
+  "21:5 Unnecessary comma. @lightscript/unnecessary-comma",
+  "22:5 Unnecessary comma. @lightscript/unnecessary-comma",
+  "25:5 Unnecessary comma. @lightscript/unnecessary-comma",
+  "26:9 Unnecessary comma. @lightscript/unnecessary-comma",
+  "30:7 Unnecessary comma. @lightscript/unnecessary-comma"
 ]

@@ -4,11 +4,11 @@
     "no-undef": 1,
     "no-const-assign": 1,
     "@lightscript/variables": 1,
-    "@lightscript/illegalInIife": 1,
-    "@lightscript/implicitImports": 1,
-    "@lightscript/matchRequiresElse": 1,
-    "@lightscript/unnecessaryConst": 1,
-    "@lightscript/unnecessarySemi": 1,
-    "@lightscript/unnecessaryComma": 1
+    "@lightscript/illegal-in-iife": 1,
+    "@lightscript/implicit-imports": 1,
+    "@lightscript/match-requires-else": 1,
+    "@lightscript/unnecessary-const": 1,
+    "@lightscript/unnecessary-semi": 1,
+    "@lightscript/unnecessary-comma": 1
   }
 }

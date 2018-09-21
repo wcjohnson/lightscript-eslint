@@ -1,3 +1,3 @@
 [
-  "2:25 `await` is illegal in spread loop. @lightscript/illegalInIife"
+  "2:25 `await` is illegal in spread loop. @lightscript/illegal-in-iife"
 ]
