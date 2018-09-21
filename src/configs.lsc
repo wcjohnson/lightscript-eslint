@@ -1,0 +1,5 @@
+export recommended = {
+  rules: {
+    "@lightscript/variables": 2
+  }
+}
