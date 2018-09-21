@@ -19,8 +19,8 @@ export parseForESLint(code, options) -> {
 }
 
 parseAndAnalyzeScope(code, options) -> {
-  ast = parse(code, options)
-  scopeManager = analyzeScope(ast, options)
+  { ast, compilerConfig } = parse(code, options)
+  scopeManager = analyzeScope(ast, options, compilerConfig)
 
   { ast, scopeManager, visitorKeys }
 }

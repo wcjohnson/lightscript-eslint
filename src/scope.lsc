@@ -1,8 +1,10 @@
 import analyze from './analyze-scope'
-import visitorKeys from './visitor-keys'
+import childVisitorKeys from './visitor-keys'
 
-import { Reference } from 'eslint-scope'
+import { Reference, ScopeManager } from 'eslint-scope'
 Definition = require("eslint-scope/lib/definition").Definition
+GlobalScope = require("eslint-scope/lib/scope").GlobalScope
+fallback = require("eslint-visitor-keys").getKeys
 
 class LscReferencer extends analyze.Referencer {
   LscTildeCallExpression(node) -> {
@@ -147,5 +149,42 @@ class LscReferencer extends analyze.Referencer {
   }
 }
 
-export analyzeScope(ast, options) ->
-  analyze(ast, options, null, LscReferencer)
+class LscGlobalScope extends GlobalScope {
+  constructor(scopeManager, block) -> {
+    super(scopeManager, block)
+  }
+}
+
+class LscScopeManager extends ScopeManager {
+  constructor(options, compilerConfig) -> {
+    super(options)
+    this._lscCompilerConfig = compilerConfig
+  }
+
+  __nestGlobalScope(node) -> {
+    this.__nestScope(new LscGlobalScope(this, node))
+  }
+}
+
+export analyzeScope(ast, parserOptions, compilerConfig) ->
+  const options = {
+    ignoreEval: true,
+    optimistic: false,
+    directive: false,
+    nodejsScope:
+      ast.sourceType === "script" &&
+      (parserOptions.ecmaFeatures &&
+        parserOptions.ecmaFeatures.globalReturn) === true,
+    impliedStrict: false,
+    sourceType: ast.sourceType,
+    ecmaVersion: parserOptions.ecmaVersion || 2018,
+    fallback,
+    childVisitorKeys
+  };
+
+  scopeManager = new LscScopeManager(options, compilerConfig)
+  referencer = new LscReferencer(options, scopeManager)
+
+  referencer.visit(ast)
+
+  scopeManager

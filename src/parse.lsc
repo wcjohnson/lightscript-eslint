@@ -89,5 +89,5 @@ export function parse(code, options) {
   if options._dumpAst:
     console.log("ast", ast)
 
-  return ast;
+  return { compilerConfig, ast };
 }
