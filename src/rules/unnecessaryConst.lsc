@@ -17,16 +17,17 @@ export default {
     schema: []
   }
   create(context) -> {
-    // Check for implicit `const` shadowing declarations
     VariableDeclaration(node): void -> {
       if node~isSingleConstDecl():
         sourceCode = context.getSourceCode()
         constToken = sourceCode.getFirstToken(node)
+        nextToken = sourceCode.getTokenAfter(constToken)
 
         context.report({
           node
+          loc: constToken.loc
           messageId: 'unnecessaryConst'
-          fix(fixer) -> fixer.remove(constToken)
+          fix(fixer) -> fixer.removeRange([constToken.range[0], nextToken.range[0]])
         })
     }
   }
