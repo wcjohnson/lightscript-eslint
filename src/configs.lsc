@@ -2,5 +2,6 @@ export recommended = {
   rules: {
     "@lightscript/variables": 2
     "@lightscript/illegalInIife": 2
+    "@lightscript/unnecessaryConst": 1
   }
 }

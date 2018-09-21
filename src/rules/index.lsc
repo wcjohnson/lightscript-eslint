@@ -2,7 +2,9 @@ import variables from './variables'
 import illegalInIife from './illegalInIife'
 import implicitImports from './implicitImports'
 import matchRequiresElse from './matchRequiresElse'
+import unnecessaryConst from './unnecessaryConst'
 
 export {
   variables, illegalInIife, implicitImports, matchRequiresElse
+  unnecessaryConst
 }

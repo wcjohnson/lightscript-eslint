@@ -1,0 +1,33 @@
+isSingleConstDecl(node) ->
+  node.type == "VariableDeclaration" and
+  node.kind == "const" and
+  (not node.extra?.implicit) and
+  node.declarations?.length == 1
+
+export default {
+  meta: {
+    docs: {
+      description: "Find unnecessary `const` keywords"
+      category: "Stylistic Issues"
+    }
+    messages: {
+      unnecessaryConst: "Unnecessary `const`."
+    }
+    fixable: true
+    schema: []
+  }
+  create(context) -> {
+    // Check for implicit `const` shadowing declarations
+    VariableDeclaration(node): void -> {
+      if node~isSingleConstDecl():
+        sourceCode = context.getSourceCode()
+        constToken = sourceCode.getFirstToken(node)
+
+        context.report({
+          node
+          messageId: 'unnecessaryConst'
+          fix(fixer) -> fixer.remove(constToken)
+        })
+    }
+  }
+}
