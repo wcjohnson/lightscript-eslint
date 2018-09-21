@@ -1,0 +1,41 @@
+export default {
+  meta: {
+    docs: {
+      description: "Force `match` to be exhaustive by requiring an `else` clause"
+      category: "Possible Errors"
+    }
+    messages: {
+      matchRequiresElse: "`match` requires an `else` branch"
+    }
+    fixable: false
+    schema: []
+  }
+  create(context) -> {
+    visitMatchCases(node): void ->
+      let hasUsedElse = false
+      // XXX: technically else has to be the last case, so don't need to
+      // iterate the whole thing, but probably safer in case we change that?
+      for elem c in node.cases:
+        if c.outerGuard?.type == "LscMatchElse":
+          now hasUsedElse = true
+          break
+
+      if not hasUsedElse:
+        context.report({
+          node
+          loc: { // Highlight "match" token
+            start: node.loc.start
+            end: {
+              line: node.loc.start.line
+              column: node.loc.start.column + 5
+            }
+          }
+          messageId: "matchRequiresElse"
+        })
+
+    {
+      LscMatchExpression(node): void -> visitMatchCases(node)
+      LscMatchStatement(node): void -> visitMatchCases(node)
+    }
+  } // create
+}
