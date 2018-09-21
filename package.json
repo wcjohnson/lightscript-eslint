@@ -12,9 +12,12 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.0.0",
-    "@lightscript/transform": "4.0.0-alpha.1",
     "eslint-scope": "^4.0.0",
     "eslint-visitor-keys": "^1.0.0"
+  },
+  "peerDependencies": {
+    "eslint": "^5.0.0",
+    "@lightscript/babel-preset": "^4.0.0"
   },
   "scripts": {
     "build": "run-s build:plain",
@@ -38,6 +41,7 @@
   },
   "devDependencies": {
     "dedent": "^0.7.0",
+    "@lightscript/babel-preset": "4.0.0-alpha.1",
     "eslint": "npm:eslint@5.6.0",
     "eslint-config-babel": "^7.0.1",
     "eslint-plugin-flowtype": "^2.30.3",

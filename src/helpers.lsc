@@ -1,4 +1,5 @@
-import { types as t } from '@lightscript/transform'
+import { api } from '@lightscript/babel-preset'
+t = api.types
 
 export aliasesFor(type) ->
   t.FLIPPED_ALIAS_KEYS[type]

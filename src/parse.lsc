@@ -1,9 +1,10 @@
-import { tooling } from '@lightscript/transform'
+import { api } from '@lightscript/babel-preset'
+babylonToEspree = require("./babylon-to-espree");
+codeFrameColumns = require("@babel/code-frame").codeFrameColumns;
 
-var babylonToEspree = require("./babylon-to-espree");
-var tt = require("@lightscript/transform").parser.tokTypes;
-var traverse = require("@lightscript/transform").traverse;
-var codeFrameColumns = require("@babel/code-frame").codeFrameColumns;
+tt = api.parser.tokTypes
+traverse = api.traverse
+tooling = api.tooling
 
 export function parse(code, options) {
   const legacyDecorators =

@@ -6,22 +6,30 @@ Issues: https://github.com/wcjohnson/lightscript/issues
 
 ## TLDR
 
-1. `npm install --save-dev @lightscript/eslint-plugin`
+1. Install stuff:
+    ```sh
+    $ npm install --save-dev eslint
+    $ npm install --save-dev @lightscript/eslint-plugin
+    $ npm install --save-dev @lightscript/babel-preset
+    ```
 
-2. Create `.eslintrc`:
+2. Create or update `.eslintrc` at your package root:
 
-  ```json
-  {
-    "parser": "@lightscript/eslint-plugin",
-    "plugins": ["@lightscript/eslint-plugin"],
-    "extends": [
-      "eslint:recommended",
-      "plugin:@lightscript/recommended"
-    ]
-  }
-  ```
+    ```json
+    {
+      "parser": "@lightscript/eslint-plugin",
+      "plugins": ["@lightscript/eslint-plugin"],
+      "extends": [
+        "eslint:recommended",
+        "plugin:@lightscript/recommended"
+      ]
+    }
+    ```
 
-3. Lint your code: `$(npm bin)/eslint --ext .js,.lsc src/`
+1. Lint your source code:
+    ```sh
+    $ (npm bin)/eslint --ext .js,.lsc src/
+    ```
 
 `@lightscript/eslint-plugin` is fully compatible with all other ESLint plugins and can lint JavaScript as well as LightScript code.
 
@@ -33,6 +41,7 @@ It is based on the `babel-eslint` plugin and has been modified to support LightS
 Any file that includes `.lsc` or `.lsx` in the filename (including, eg, `.lsc.js`)
 will be processed as LightScript; all others will be processed exactly as in `babel-eslint`.
 
+`@lightscript/babel-preset` is a peerDependency and must be installed alongside the linter plugin. If you have a working LightScript build chain, this should already be the case.
 
 ## Usage
 
@@ -119,13 +128,19 @@ Warn when a `match` is missing an `else` case. Can be used to ensure all pattern
 
 Warn when a `const` keyword is unnecessary because of LightScript implicit `const`.
 
+- Included in `recommended` preset.
+
 ### `@lightscript/unnecessary-semi`
 
 Warn when a `;` is unnecessary according to LightScript ASI rules.
 
+- Included in `recommended` preset.
+
 ### `@lightscript/unnecessary-comma`
 
 Warn when a `,` is unnecessary according to LightScript list separator rules.
+
+- Included in `recommended` preset.
 
 ## Known Issues
 

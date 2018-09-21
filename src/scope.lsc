@@ -1,3 +1,4 @@
+import { api } from '@lightscript/babel-preset'
 import analyze from './analyze-scope'
 import childVisitorKeys from './visitor-keys'
 
@@ -6,7 +7,7 @@ Definition = require("eslint-scope/lib/definition").Definition
 GlobalScope = require("eslint-scope/lib/scope").GlobalScope
 fallback = require("eslint-visitor-keys").getKeys
 
-import { tooling } from '@lightscript/transform'
+{ tooling } = api
 { isPotentialImplicitLodashImport } = tooling
 
 class LscReferencer extends analyze.Referencer {
