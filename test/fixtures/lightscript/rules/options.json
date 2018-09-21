@@ -7,6 +7,7 @@
     "@lightscript/illegalInIife": 1,
     "@lightscript/implicitImports": 1,
     "@lightscript/matchRequiresElse": 1,
-    "@lightscript/unnecessaryConst": 1
+    "@lightscript/unnecessaryConst": 1,
+    "@lightscript/unnecessarySemi": 1
   }
 }

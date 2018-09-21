@@ -3,8 +3,9 @@ import illegalInIife from './illegalInIife'
 import implicitImports from './implicitImports'
 import matchRequiresElse from './matchRequiresElse'
 import unnecessaryConst from './unnecessaryConst'
+import unnecessarySemi from './unnecessarySemi'
 
 export {
   variables, illegalInIife, implicitImports, matchRequiresElse
-  unnecessaryConst
+  unnecessaryConst, unnecessarySemi
 }

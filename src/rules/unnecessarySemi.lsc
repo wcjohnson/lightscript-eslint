@@ -1,0 +1,87 @@
+import { aliasesFor } from '../helpers'
+
+function isSemicolonToken(token) {
+    return token.value === ";" && token.type === "Punctuator";
+}
+
+function isClosingBraceToken(token) {
+    return token.value === "}" && token.type === "Punctuator";
+}
+
+function isTokenOnSameLine(left, right) {
+  return left.loc.end.line === right.loc.start.line;
+}
+
+export default {
+  meta: {
+    docs: {
+      description: "Find unnecessary semicolon"
+      category: "Stylistic Issues"
+    }
+    messages: {
+      unnecessarySemi: "Unnecessary semicolon."
+    }
+    fixable: true
+    schema: []
+  }
+  create(context) -> {
+    sourceCode = context.getSourceCode()
+
+    // c/p eslint semi rule
+    isRedundantSemi(semiToken): boolean -> {
+      const nextToken = sourceCode.getTokenAfter(semiToken);
+
+      return (
+          !nextToken ||
+          isSemicolonToken(nextToken)
+      );
+    }
+
+    isOnSameLineWithNextToken(node): boolean -> {
+      const prevToken = sourceCode.getLastToken(node, 1);
+      const nextToken = sourceCode.getTokenAfter(node);
+
+      return !!nextToken && isTokenOnSameLine(prevToken, nextToken);
+    }
+
+    canRemoveSemicolon(node, semi): boolean -> {
+      if (isRedundantSemi(semi)) {
+          return true; // `;;` or `;}`
+      }
+      if (isOnSameLineWithNextToken(node)) {
+          return false; // One liner.
+      }
+      return true;
+    }
+
+    checkSemicolon(node): void -> {
+      lastToken = sourceCode.getLastToken(node)
+
+      if(
+        lastToken~isSemicolonToken() and
+        canRemoveSemicolon(node, lastToken)
+      ):
+        context.report({
+          node
+          loc: lastToken.loc
+          messageId: 'unnecessarySemi'
+          fix(fixer) -> fixer.removeRange(lastToken.range)
+        })
+    }
+
+    enterStatement(node): void -> {
+      // Can't remove semicolons from variable decls in a for loop
+      if node.type == "VariableDeclaration":
+        if node.parent.type == "ForStatement" and node == parent.init: return
+        if (
+          (node.parent.type == "ForInStatement" or node.parent.type == "ForOfStatement") and
+          node == parent.left
+        ): return
+
+      checkSemicolon(node)
+    }
+
+    // Visit all Statements and check for semis
+    { ...for elem alias in aliasesFor("Statement"): { [alias]: enterStatement } }
+  }
+}

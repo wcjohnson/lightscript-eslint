@@ -3,5 +3,6 @@ export recommended = {
     "@lightscript/variables": 2
     "@lightscript/illegalInIife": 2
     "@lightscript/unnecessaryConst": 1
+    "@lightscript/unnecessarySemi": 1
   }
 }
