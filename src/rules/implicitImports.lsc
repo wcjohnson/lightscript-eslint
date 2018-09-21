@@ -1,0 +1,25 @@
+export default {
+  meta: {
+    docs: {
+      description: "Find references that will cause LightScript to generate an implicit import"
+      category: "Possible Errors"
+    }
+    messages: {
+      implicitImport: "'{{name}}' will be implicitly imported from {{source}}."
+    }
+    fixable: false
+    schema: []
+  }
+  create(context) -> {
+    {
+      "Program:exit": (node) ->
+        scopeManager = context.getSourceCode().scopeManager
+        for elem id in (scopeManager._lscLodashImports or []):
+          context.report({
+            node: id
+            messageId: "implicitImport"
+            data: { name: id.name, source: 'lodash' }
+          })
+    }
+  } // create
+}

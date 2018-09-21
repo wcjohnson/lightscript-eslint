@@ -4,6 +4,7 @@
     "no-undef": 1,
     "no-const-assign": 1,
     "@lightscript/variables": 1,
-    "@lightscript/illegalInIife": 1
+    "@lightscript/illegalInIife": 1,
+    "@lightscript/implicitImports": 1
   }
 }
