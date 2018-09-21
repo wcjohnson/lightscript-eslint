@@ -1,5 +1,6 @@
 import variables from './variables'
+import illegalInIife from './illegalInIife'
 
 export {
-  variables
+  variables, illegalInIife
 }

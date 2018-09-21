@@ -1,0 +1,64 @@
+import { aliasesFor } from '../helpers'
+
+export default {
+  meta: {
+    docs: {
+      description: "Find statements that are illegal inside code that will be converted to an IIFE"
+      category: "Possible Errors"
+    }
+    messages: {
+      illegalInIife: "`{{keyword}}` is illegal in {{context}}."
+    }
+    fixable: false
+    schema: []
+  }
+  create(context) -> {
+    fnStack = []
+
+    peek(stack) -> stack[stack.length - 1] or {}
+    enterSpreadLoop(): void ->
+      fnStack.push({ context: 'spread loop', awaitIllegal: true, yieldIllegal: true, returnIllegal: true })
+    exitSpreadLoop(): void -> fnStack.pop()
+    enterTryExpression(): void ->
+      fnStack.push({ context: 'try expression', yieldIllegal: true, returnIllegal: true})
+    exitTryExpression(): void -> fnStack.pop()
+    enterFunction(): void -> fnStack.push({})
+    exitFunction(): void -> fnStack.pop()
+
+    {
+      AwaitExpression(node): void ->
+        if fnStack~peek().awaitIllegal:
+          context.report({
+            node
+            messageId: "illegalInIife"
+            data: { keyword: 'await', context: fnStack~peek().context }
+          })
+
+      YieldExpression(node): void ->
+        if fnStack~peek().yieldIllegal:
+          context.report({
+            node
+            messageId: "illegalInIife"
+            data: { keyword: 'yield', context: fnStack~peek().context }
+          })
+
+      ReturnStatement(node): void ->
+        if fnStack~peek().returnIllegal:
+          context.report({
+            node
+            messageId: "illegalInIife"
+            data: { keyword: 'return', context: fnStack~peek().context }
+          })
+
+      LscSpreadLoop: enterSpreadLoop
+      "LscSpreadLoop:exit": exitSpreadLoop
+      LscTryExpression: enterTryExpression
+      "LscTryExpression:exit": exitTryExpression
+      ...for elem alias in aliasesFor("Function"):
+        {
+          [alias]: enterFunction
+          [`${alias}:exit`]: exitFunction
+        }
+    }
+  } // create
+}

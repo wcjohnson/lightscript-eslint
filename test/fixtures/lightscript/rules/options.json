@@ -3,6 +3,7 @@
     "no-unused-vars": 1,
     "no-undef": 1,
     "no-const-assign": 1,
-    "@lightscript/variables": 1
+    "@lightscript/variables": 1,
+    "@lightscript/illegalInIife": 1
   }
 }
