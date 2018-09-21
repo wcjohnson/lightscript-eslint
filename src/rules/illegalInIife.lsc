@@ -15,7 +15,8 @@ export default {
   create(context) -> {
     fnStack = []
 
-    peek(stack) -> stack[stack.length - 1] or {}
+    peek(stack) ->
+      if stack.length > 0: stack[stack.length - 1] else: {}
     enterSpreadLoop(): void ->
       fnStack.push({ context: 'spread loop', awaitIllegal: true, yieldIllegal: true, returnIllegal: true })
     exitSpreadLoop(): void -> fnStack.pop()
