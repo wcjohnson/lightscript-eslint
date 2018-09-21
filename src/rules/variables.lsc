@@ -118,14 +118,14 @@ export default {
       for elem dupe in dupes:
         [firstDef, ...dupeDefs] = dupe.defs
         context.report({
-          node: firstDef.node
+          node: firstDef.name
           messageId: "shadowed"
           data: { name: firstDef.name.name }
         })
         if firstDef~isImmutableDef():
           for elem dupeDef in dupeDefs:
             context.report({
-              node: dupeDef.node
+              node: dupeDef.name
               messageId: "shadowsImmutableNoRedef"
               data: { name: dupeDef.name.name }
             })
@@ -133,14 +133,14 @@ export default {
           for elem dupeDef in dupeDefs:
             if dupeDef~isImplicitConstDef():
               context.report({
-                node: dupeDef.node
+                node: dupeDef.name
                 messageId: "shadowsMutableReassign"
                 data: { name: dupeDef.name.name }
                 fix(fixer) -> fixer.insertTextBefore(dupeDef.parent, "now ")
               })
             else:
               context.report({
-                node: dupeDef.node
+                node: dupeDef.name
                 messageId: "shadowsMutable"
                 data: { name: dupeDef.name.name }
               })
