@@ -1,8 +1,10 @@
 export recommended = {
   rules: {
+    "no-shadow-restricted-names": 2
     "@lightscript/variables": 2
     "@lightscript/illegalInIife": 2
     "@lightscript/unnecessaryConst": 1
     "@lightscript/unnecessarySemi": 1
+    "@lightscript/unnecessaryComma": 1
   }
 }

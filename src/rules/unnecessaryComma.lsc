@@ -1,0 +1,73 @@
+import { aliasesFor } from '../helpers'
+
+function isCommaToken(token): boolean {
+    return token && token.value === "," && token.type === "Punctuator";
+}
+
+function isTokenOnSameLine(left, right): boolean {
+  return left.loc.end.line === right.loc.start.line;
+}
+
+export default {
+  meta: {
+    docs: {
+      description: "Find unnecessary commas"
+      category: "Stylistic Issues"
+    }
+    messages: {
+      unnecessary: "Unnecessary comma."
+    }
+    fixable: true
+    schema: []
+  }
+  create(context) -> {
+    sourceCode = context.getSourceCode()
+
+    isTokenOnSameLineWithNextToken(token): boolean -> {
+      nextToken = sourceCode.getTokenAfter(token)
+      nextToken and isTokenOnSameLine(token, nextToken)
+    }
+
+    canRemoveComma(comma): boolean -> {
+      if (comma~isTokenOnSameLineWithNextToken()) {
+          return false; // One liner.
+      }
+      return true;
+    }
+
+    checkComma(node): void -> {
+      lastToken = sourceCode.getLastToken(node)
+      maybeComma = sourceCode.getTokenAfter(lastToken)
+
+      if(
+        maybeComma~isCommaToken() and
+        canRemoveComma(maybeComma)
+      ):
+        context.report({
+          node
+          loc: maybeComma.loc
+          messageId: 'unnecessary'
+          fix(fixer) -> fixer.removeRange(maybeComma.range)
+        })
+    }
+
+    checkList(listKey) -> {
+      (node): void ->
+        for elem e in node[listKey]: checkComma(e)
+    }
+
+    // Visit all nodes with optional commas
+    {
+      ...for elem alias in aliasesFor("Function"): { [alias]: checkList("params") }
+      CallExpression: checkList("arguments")
+      LscTildeCallExpression: checkList("arguments")
+      ArrayExpression: checkList("elements")
+      ArrayPattern: checkList("elements")
+      ObjectExpression: checkList("properties")
+      ObjectPattern: checkList("properties")
+      SequenceExpression: checkList("expressions")
+      ExportNamedDeclaration: checkList("specifiers")
+      ImportDeclaration: checkList("specifiers")
+    }
+  }
+}
