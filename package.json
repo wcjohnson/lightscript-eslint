@@ -43,7 +43,6 @@
     "url": "https://github.com/wcjohnson/lightscript/issues"
   },
   "devDependencies": {
-    "@lightscript/babel-preset": "4.0.0-alpha.1",
     "@oigroup/babel-preset-lightscript": "^3.1.1",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
