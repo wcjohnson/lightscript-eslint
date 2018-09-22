@@ -9,6 +9,11 @@ export function parse(code, options) {
   const legacyDecorators =
     options.ecmaFeatures && options.ecmaFeatures.legacyDecorators;
 
+  decoratorOpts = if legacyDecorators:
+    { legacy: true }
+  else:
+    { decoratorsBeforeExport: false }
+
   var opts = {
     codeFrame: options.hasOwnProperty("codeFrame") ? options.codeFrame : true,
     sourceType: options.sourceType,
@@ -23,9 +28,6 @@ export function parse(code, options) {
       "estree",
       "asyncGenerators",
       "classProperties",
-      legacyDecorators
-        ? "decorators-legacy"
-        : ["decorators", { decoratorsBeforeExport: false }],
       "doExpressions",
       "exportDefaultFrom",
       "exportNamespaceFrom",
@@ -46,7 +48,7 @@ export function parse(code, options) {
     ],
   };
 
-  compilerConfig = tooling.getCompilerConfiguration(options.filePath, code, { parserOpts: opts })
+  compilerConfig = tooling.getCompilerConfiguration(options.filePath, code, { parserOpts: opts }, { decoratorOpts })
 
   var ast;
   try {
