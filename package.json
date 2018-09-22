@@ -6,6 +6,11 @@
   "files": [
     "lib"
   ],
+  "keywords": [
+    "lightscript",
+    "eslint",
+    "eslintplugin"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/wcjohnson/lightscript-eslint.git"
