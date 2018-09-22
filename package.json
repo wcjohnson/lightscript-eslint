@@ -27,9 +27,7 @@
     "test:only": "run-s test:mocha test:jest",
     "test:mocha": "mocha",
     "test:jest": "jest",
-    "test:lightscript": "run-s build test:jest",
-    "preversion": "run-s test",
-    "changelog": "git log `git describe --tags --abbrev=0`..HEAD --pretty=format:' * %s (%an)' | grep -v 'Merge pull request'"
+    "test:lightscript": "run-s build test:jest"
   },
   "homepage": "http://wcjohnson.github.io/lightscript",
   "license": "MIT",
