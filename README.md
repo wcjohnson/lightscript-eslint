@@ -144,6 +144,9 @@ Warn when a `,` is unnecessary according to LightScript list separator rules.
 
 ## Known Issues
 
+- `no-extra-semi` rule:
+The `no-extra-semi` rule has a bug when iterating over whiteblock code. The `recommended` preset automatically disables it. Otherwise you will need to disable it yourself in `.eslintrc`.
+
 Flow:
 > Check out [eslint-plugin-flowtype](https://github.com/gajus/eslint-plugin-flowtype): An `eslint` plugin that makes flow type annotations global variables and marks declarations as used. Solves the problem of false positives with `no-undef` and `no-unused-vars`.
 - `no-undef` for global flow types: `ReactElement`, `ReactClass` [#130](https://github.com/babel/babel-eslint/issues/130#issuecomment-111215076)
@@ -157,7 +160,6 @@ Please check out [eslint-plugin-react](https://github.com/yannickcr/eslint-plugi
 - `no-unused-vars` with jsx
 
 Please check out [eslint-plugin-babel](https://github.com/babel/eslint-plugin-babel) for other issues
-
 
 ## Contributing
 

@@ -1,0 +1,5 @@
+{
+  "rules": { "no-extra-semi": 1 },
+  "throws": "Cannot read property 'type' of null",
+  "_comment": "Extra semi rule iterates until it finds a closing brace, which doesnt exist in whiteblock code."
+}
