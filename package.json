@@ -1,6 +1,6 @@
 {
   "name": "@lightscript/eslint-plugin",
-  "version": "4.0.0-alpha.4",
+  "version": "4.0.0-alpha.5",
   "description": "LightScript plugin for the ESLint linter.",
   "main": "lib/index.js",
   "files": [
