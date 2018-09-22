@@ -3,7 +3,6 @@ babylonToEspree = require("./babylon-to-espree");
 codeFrameColumns = require("@babel/code-frame").codeFrameColumns;
 
 tt = api.parser.tokTypes
-traverse = api.traverse
 tooling = api.tooling
 
 export function parse(code, options) {
@@ -85,7 +84,7 @@ export function parse(code, options) {
     throw err;
   }
 
-  babylonToEspree(ast, traverse, tt, code);
+  babylonToEspree(ast, null, tt, code);
 
   if options._dumpAst:
     console.log("ast", ast)
