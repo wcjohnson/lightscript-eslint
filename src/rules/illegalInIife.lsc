@@ -13,6 +13,8 @@ export default {
     schema: []
   }
   create(context) -> {
+    if not context.parserServices.isLightScript(): return {}
+
     fnStack = []
 
     peek(stack) ->

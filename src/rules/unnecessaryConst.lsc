@@ -17,18 +17,22 @@ export default {
     schema: []
   }
   create(context) -> {
-    VariableDeclaration(node): void -> {
-      if node~isSingleConstDecl():
-        sourceCode = context.getSourceCode()
-        constToken = sourceCode.getFirstToken(node)
-        nextToken = sourceCode.getTokenAfter(constToken)
+    if not context.parserServices.isLightScript(): return {}
 
-        context.report({
-          node
-          loc: constToken.loc
-          messageId: 'unnecessaryConst'
-          fix(fixer) -> fixer.removeRange([constToken.range[0], nextToken.range[0]])
-        })
+    {
+      VariableDeclaration(node): void -> {
+        if node~isSingleConstDecl():
+          sourceCode = context.getSourceCode()
+          constToken = sourceCode.getFirstToken(node)
+          nextToken = sourceCode.getTokenAfter(constToken)
+
+          context.report({
+            node
+            loc: constToken.loc
+            messageId: 'unnecessaryConst'
+            fix(fixer) -> fixer.removeRange([constToken.range[0], nextToken.range[0]])
+          })
+      }
     }
-  }
+  } // create
 }

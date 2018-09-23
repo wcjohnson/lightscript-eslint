@@ -1,0 +1,7 @@
+[
+  "1:5 'x', originally defined here, is illegally shadowed later. @lightscript/variables",
+  "1:6 Unnecessary semicolon. @lightscript/unnecessary-semi",
+  "3:1 'x' shadows a mutable binding. Use `now` to reassign. @lightscript/variables",
+  "3:6 Unnecessary semicolon. @lightscript/unnecessary-semi",
+  "6:4 Unnecessary comma. @lightscript/unnecessary-comma"
+]

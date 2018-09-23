@@ -65,85 +65,89 @@ export default {
     schema: []
   }
   create(context) -> {
-    // Check for missing `now` in assignments
-    AssignmentExpression(node): void -> {
-      // Don't enforce `now` with MemberExprs
-      if node.left.type == "MemberExpression" or node.left.type == "OptionalMemberExpression": return
+    if not context.parserServices.isLightScript(): return {}
 
-      if not node.isNowAssign:
-        context.report({
-          node
-          messageId: "notNowAssign"
-          fix(fixer) -> fixer.insertTextBefore(node, "now ")
-        })
-    }
+    {
+      // Check for missing `now` in assignments
+      AssignmentExpression(node): void -> {
+        // Don't enforce `now` with MemberExprs
+        if node.left.type == "MemberExpression" or node.left.type == "OptionalMemberExpression": return
 
-    // Check for implicit `const` shadowing declarations
-    VariableDeclaration(node): void -> {
-      if not node~isImplicitConstDecl(): return
+        if not node.isNowAssign:
+          context.report({
+            node
+            messageId: "notNowAssign"
+            fix(fixer) -> fixer.insertTextBefore(node, "now ")
+          })
+      }
 
-      shadowedPairs = context.getDeclaredVariables(node)~getShadowedPairs()
-      for elem { shadowed } in shadowedPairs:
-        context.report({
-          node: shadowed.defs[0]?.name or node
-          messageId: "shadowed"
-          data: { name: shadowed.name }
-        })
+      // Check for implicit `const` shadowing declarations
+      VariableDeclaration(node): void -> {
+        if not node~isImplicitConstDecl(): return
 
-      // If shadowing an immutable variable, must use explicit `const`
-      immutablePairs = shadowedPairs.filter(p -> p.shadowed~isImmutableVar())
-      for elem { shadow } in immutablePairs:
-        context.report({
-          node: shadow.defs[0]?.name or node
-          messageId: "shadowsImmutableRedef"
-          data: { name: shadow.name }
-        })
+        shadowedPairs = context.getDeclaredVariables(node)~getShadowedPairs()
+        for elem { shadowed } in shadowedPairs:
+          context.report({
+            node: shadowed.defs[0]?.name or node
+            messageId: "shadowed"
+            data: { name: shadowed.name }
+          })
 
-      // If shadowing a mutable variable, can use `now`
-      mutablePairs = shadowedPairs.filter(p -> not p.shadowed~isImmutableVar())
-      for elem { shadow } in mutablePairs:
-        context.report({
-          node: shadow.defs[0]?.name or node
-          messageId: "shadowsMutableRedef"
-          data: { name: shadow.name }
-          fix(fixer) -> fixer.insertTextBefore(node, "now ")
-        })
-    }
+        // If shadowing an immutable variable, must use explicit `const`
+        immutablePairs = shadowedPairs.filter(p -> p.shadowed~isImmutableVar())
+        for elem { shadow } in immutablePairs:
+          context.report({
+            node: shadow.defs[0]?.name or node
+            messageId: "shadowsImmutableRedef"
+            data: { name: shadow.name }
+          })
 
-    // Check for illegal variable redeclarations in the same scope.
-    // Based on Babel's `checkBlockScopedCollisions`
-    // Run only once at Program scope
-    Program(node): void -> {
-      dupes = context.getScope()~findDuplicateDeclarations()
-      for elem dupe in dupes:
-        [firstDef, ...dupeDefs] = dupe.defs
-        context.report({
-          node: firstDef.name
-          messageId: "shadowed"
-          data: { name: firstDef.name.name }
-        })
-        if firstDef~isImmutableDef():
-          for elem dupeDef in dupeDefs:
-            context.report({
-              node: dupeDef.name
-              messageId: "shadowsImmutableNoRedef"
-              data: { name: dupeDef.name.name }
-            })
-        else:
-          for elem dupeDef in dupeDefs:
-            if dupeDef~isImplicitConstDef():
+        // If shadowing a mutable variable, can use `now`
+        mutablePairs = shadowedPairs.filter(p -> not p.shadowed~isImmutableVar())
+        for elem { shadow } in mutablePairs:
+          context.report({
+            node: shadow.defs[0]?.name or node
+            messageId: "shadowsMutableRedef"
+            data: { name: shadow.name }
+            fix(fixer) -> fixer.insertTextBefore(node, "now ")
+          })
+      }
+
+      // Check for illegal variable redeclarations in the same scope.
+      // Based on Babel's `checkBlockScopedCollisions`
+      // Run only once at Program scope
+      Program(node): void -> {
+        dupes = context.getScope()~findDuplicateDeclarations()
+        for elem dupe in dupes:
+          [firstDef, ...dupeDefs] = dupe.defs
+          context.report({
+            node: firstDef.name
+            messageId: "shadowed"
+            data: { name: firstDef.name.name }
+          })
+          if firstDef~isImmutableDef():
+            for elem dupeDef in dupeDefs:
               context.report({
                 node: dupeDef.name
-                messageId: "shadowsMutableReassign"
-                data: { name: dupeDef.name.name }
-                fix(fixer) -> fixer.insertTextBefore(dupeDef.parent, "now ")
-              })
-            else:
-              context.report({
-                node: dupeDef.name
-                messageId: "shadowsMutable"
+                messageId: "shadowsImmutableNoRedef"
                 data: { name: dupeDef.name.name }
               })
+          else:
+            for elem dupeDef in dupeDefs:
+              if dupeDef~isImplicitConstDef():
+                context.report({
+                  node: dupeDef.name
+                  messageId: "shadowsMutableReassign"
+                  data: { name: dupeDef.name.name }
+                  fix(fixer) -> fixer.insertTextBefore(dupeDef.parent, "now ")
+                })
+              else:
+                context.report({
+                  node: dupeDef.name
+                  messageId: "shadowsMutable"
+                  data: { name: dupeDef.name.name }
+                })
+      } // Program(node)
     }
-  }
+  } // create
 }

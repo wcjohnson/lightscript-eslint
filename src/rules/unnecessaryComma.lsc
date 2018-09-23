@@ -21,6 +21,7 @@ export default {
     schema: []
   }
   create(context) -> {
+    if not context.parserServices.isLightScript(): return {}
     sourceCode = context.getSourceCode()
 
     isTokenOnSameLineWithNextToken(token): boolean -> {

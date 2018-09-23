@@ -11,6 +11,8 @@ export default {
     schema: []
   }
   create(context) -> {
+    if not context.parserServices.isLightScript(): return {}
+
     visitMatchCases(node): void ->
       let hasUsedElse = false
       // XXX: technically else has to be the last case, so don't need to

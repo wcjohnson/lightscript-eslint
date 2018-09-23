@@ -11,6 +11,8 @@ export default {
     schema: []
   }
   create(context) -> {
+    if not context.parserServices.isLightScript(): return {}
+
     {
       "Program:exit": (node) ->
         scopeManager = context.getSourceCode().scopeManager
