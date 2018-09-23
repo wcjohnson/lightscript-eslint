@@ -3,6 +3,7 @@ import { analyzeScope } from './scope'
 import visitorKeys from './visitor-keys'
 import rules from './rules'
 import * as configs from './configs'
+import { getServices } from './services'
 
 export parseForESLint(code, options) -> {
   now options = options || {};
@@ -12,17 +13,14 @@ export parseForESLint(code, options) -> {
     options.allowImportExportEverywhere || false;
 
   if (options.eslintVisitorKeys && options.eslintScopeManager) {
-    return parseAndAnalyzeScope(code, options);
+    { ast, compilerConfig } = parse(code, options)
+    scopeManager = analyzeScope(ast, options, compilerConfig)
+    services = getServices(ast, options, scopeManager, compilerConfig)
+
+    { ast, scopeManager, visitorKeys, services }
   } else {
     throw new Error("ESLint is too old; update your version.");
   }
-}
-
-parseAndAnalyzeScope(code, options) -> {
-  { ast, compilerConfig } = parse(code, options)
-  scopeManager = analyzeScope(ast, options, compilerConfig)
-
-  { ast, scopeManager, visitorKeys }
 }
 
 export { rules, configs }

@@ -1,0 +1,5 @@
+export getServices(ast, options, scopeManager, compilerConfig) -> {
+  // Allow linting rules to inspect the compiler configuration
+  getCompilerConfig() -> compilerConfig
+  isLightScript() -> compilerConfig.isLightScript
+}
