@@ -4,10 +4,6 @@ var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
-var _vm = require('vm');
-
-var _vm2 = _interopRequireDefault(_vm);
-
 var _assert = require('assert');
 
 var _assert2 = _interopRequireDefault(_assert);
