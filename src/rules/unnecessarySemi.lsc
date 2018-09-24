@@ -73,10 +73,10 @@ export default {
     enterStatement(node): void -> {
       // Can't remove semicolons from variable decls in a for loop
       if node.type == "VariableDeclaration":
-        if node.parent.type == "ForStatement" and node == parent.init: return
+        if node.parent.type == "ForStatement" and node == node.parent.init: return
         if (
           (node.parent.type == "ForInStatement" or node.parent.type == "ForOfStatement") and
-          node == parent.left
+          node == node.parent.left
         ): return
 
       checkSemicolon(node)
