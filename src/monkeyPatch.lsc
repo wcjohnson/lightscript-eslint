@@ -1,0 +1,52 @@
+// Monkey-patch ESlint rules.
+import Module from 'module'
+import path from 'path'
+import patchedRules from './rules/patched'
+
+let hasPatched = false
+
+function createModule(filename) {
+  var mod = new Module(filename);
+  mod.filename = filename;
+  mod.paths = Module._nodeModulePaths(path.dirname(filename));
+  return mod;
+}
+
+function requireSubmodule(baseMod, path) {
+  subModule = baseMod.require(path)
+  if subModule.__esModule:
+    subModule.default
+  else:
+    subModule
+}
+
+export monkeypatch(): void ->
+  // TODO: don't try this in a browser
+  if hasPatched: return
+  now hasPatched = true
+
+  let eslintLoc
+  try {
+    // avoid importing a local copy of eslint, try to find a peer dependency
+    now eslintLoc = Module._resolveFilename("eslint", module.parent.parent)
+  } catch (err) {
+    try {
+      // avoids breaking in jest where module.parent is undefined
+      now eslintLoc = require.resolve("eslint")
+    } catch (err) {
+      throw new ReferenceError("couldn't resolve eslint");
+    }
+  }
+
+  eslintMod = createModule(eslintLoc)
+  rules = requireSubmodule(eslintMod, './rules')
+
+  // Patch rule getter
+  _get = rules.prototype.get
+  nextGet = get(ruleId) -> {
+    if ruleId and patchedRules[ruleId]:
+      patchedRules[ruleId]
+    else:
+      _get.call(this, ruleId)
+  }
+  rules.prototype.get = nextGet

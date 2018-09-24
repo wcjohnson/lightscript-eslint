@@ -1,0 +1,10 @@
+// Patches for core ESLint rules
+import noUseBeforeDefine from './patched/noUseBeforeDefine'
+
+nullRule = {
+  create() -> {}
+}
+
+export default {
+  "no-use-before-define": noUseBeforeDefine
+}

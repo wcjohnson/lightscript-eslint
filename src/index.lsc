@@ -4,8 +4,11 @@ import visitorKeys from './visitor-keys'
 import rules from './rules'
 import * as configs from './configs'
 import { getServices } from './services'
+import { monkeypatch } from './monkeyPatch'
 
 export parseForESLint(code, options) -> {
+  monkeypatch()
+
   now options = options || {};
   options.ecmaVersion = options.ecmaVersion || 2018;
   options.sourceType = options.sourceType || "module";
