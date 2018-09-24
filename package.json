@@ -32,7 +32,8 @@
     "test:only": "run-s test:mocha test:jest",
     "test:mocha": "mocha",
     "test:jest": "jest",
-    "test:lightscript": "run-s build test:jest"
+    "test:lightscript": "run-s build test:jest",
+    "test:debug": "node --inspect-brk ./node_modules/.bin/jest -i"
   },
   "homepage": "http://wcjohnson.github.io/lightscript",
   "license": "MIT",
