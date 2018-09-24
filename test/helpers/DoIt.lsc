@@ -1,5 +1,4 @@
 import path from 'path'
-import vm from 'vm'
 import assert from 'assert'
 import resolve from 'resolve'
 import fs from 'fs'
