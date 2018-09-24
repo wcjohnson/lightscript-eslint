@@ -1,5 +1,4 @@
 [
-  "3:15 'looseNotEq' is not defined. no-undef",
   "4:9 Unnecessary `const`. @lightscript/unnecessary-const",
   "9:42 Unnecessary semicolon. @lightscript/unnecessary-semi",
   "9:42 Unnecessary semicolon. @lightscript/unnecessary-semi",

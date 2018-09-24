@@ -8,7 +8,7 @@ GlobalScope = require("eslint-scope/lib/scope").GlobalScope
 fallback = require("eslint-visitor-keys").getKeys
 
 { tooling } = api
-{ isPotentialImplicitLodashImport } = tooling
+{ isPotentialImplicitLodashImport, isPotentialInlinedOperator } = tooling
 
 class LscReferencer extends analyze.Referencer {
   LscTildeCallExpression(node) -> {
@@ -161,20 +161,24 @@ class LscGlobalScope extends GlobalScope {
   __close(scopeManager) -> {
     config = scopeManager._lscCompilerConfig
 
-    if config.lodashEnabled():
+    if config.lodashEnabled() or config.inlinedOperatorsEnabled():
       newLeft = []
       lodashImports = []
+      inlinedOperators = []
 
       // Unresolved refs to lodash methods will be replaced by implicit
       // imports by the compiler.
       for elem left in this.__left:
         if isPotentialImplicitLodashImport(config, left.identifier.name):
           lodashImports.push(left.identifier)
+        elif isPotentialInlinedOperator(config, left.identifier.name):
+          inlinedOperators.push(left.identifier)
         else:
           newLeft.push(left)
 
       this.__left = newLeft
       scopeManager._lscLodashImports = lodashImports
+      scopeManager._lscInlinedOperators = inlinedOperators
 
     super.__close(scopeManager)
   }
@@ -185,6 +189,7 @@ class LscScopeManager extends ScopeManager {
     super(options)
     this._lscCompilerConfig = compilerConfig
     this._lscLodashImports = []
+    this._lscInlinedOperators = []
   }
 
   __nestGlobalScope(node) -> {
