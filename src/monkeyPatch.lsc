@@ -20,6 +20,17 @@ function requireSubmodule(baseMod, path) {
     subModule
 }
 
+export monkeypatchRules(rules): void ->
+  // Patch rule getter
+  _get = rules.prototype.get
+  nextGet = get(ruleId) -> {
+    if ruleId and patchedRules[ruleId]:
+      patchedRules[ruleId]
+    else:
+      _get.call(this, ruleId)
+  }
+  rules.prototype.get = nextGet
+
 export monkeypatch(): void ->
   // TODO: don't try this in a browser
   if hasPatched: return
@@ -40,13 +51,4 @@ export monkeypatch(): void ->
 
   eslintMod = createModule(eslintLoc)
   rules = requireSubmodule(eslintMod, './rules')
-
-  // Patch rule getter
-  _get = rules.prototype.get
-  nextGet = get(ruleId) -> {
-    if ruleId and patchedRules[ruleId]:
-      patchedRules[ruleId]
-    else:
-      _get.call(this, ruleId)
-  }
-  rules.prototype.get = nextGet
+  monkeypatchRules(rules)

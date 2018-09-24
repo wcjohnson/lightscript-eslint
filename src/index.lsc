@@ -4,7 +4,7 @@ import visitorKeys from './visitor-keys'
 import rules from './rules'
 import * as configs from './configs'
 import { getServices } from './services'
-import { monkeypatch } from './monkeyPatch'
+import { monkeypatch, monkeypatchRules } from './monkeyPatch'
 
 export parseForESLint(code, options) -> {
   monkeypatch()
@@ -27,3 +27,6 @@ export parseForESLint(code, options) -> {
 }
 
 export { rules, configs }
+
+// Needed for Jest
+export { monkeypatchRules as _monkeypatchRules }
