@@ -7,7 +7,12 @@ import { TestRun, Testable, TestOptions } from './TestRunner'
 import { allTests, TestFilter } from './TestFilter'
 import diff from 'jest-diff'
 import { CLIEngine } from 'eslint'
-thisPlugin = require.resolve("../..")
+import { _monkeypatchRules } from '../..'
+
+// Patch the version of eslint that jest has inside of its VM...
+beforeAll! ->
+  rulesModule = require('eslint/lib/rules')
+  _monkeypatchRules(rulesModule)
 
 class LinterTestOptions extends TestOptions:
   inherits(other): void ->
