@@ -24,7 +24,7 @@ class LscReferencer extends analyze.Referencer {
     this.visitPattern(patternContainer, { processRightHandNodes: true }, (pattern, info) => {
       this.referencingDefaultValue(pattern, info.assignments, null, false);
       if iteratee:
-        this.currentScope().__referencing(pattern, Reference.WRITE, iteratee, null, true, false);
+        this.currentScope().__referencing(pattern, Reference.WRITE, iteratee, null, true, true);
       this.currentScope().__define(
         pattern,
         new Definition("Variable", pattern, node, null, null, "const")
