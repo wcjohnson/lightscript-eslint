@@ -32,4 +32,5 @@ nullRule = {
 patches = {
   "no-use-before-define": patchIfLsc(noUseBeforeDefine)
   "rest-spread-spacing": patchIfLsc(restSpreadSpacing)
+  "no-extra-semi": patchIfLsc(nullRule)
 }
