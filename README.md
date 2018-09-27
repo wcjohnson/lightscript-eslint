@@ -81,8 +81,15 @@ $ eslint --ext .js,.lsc src/
 - Install the `LightScript` extension for VSCode: https://marketplace.visualstudio.com/items?itemName=lightscript.lsc
 - Install the `ESLint` extension for VSCode: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
 - Tell VSCode to live-lint LightScript files by adding the following entry to your VSCode options (workspace or global):
-  ```
-  "eslint.validate": ["javascript", "javascriptreact", "lightscript"]
+  ```json
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    {
+      "language": "lightscript",
+      "autoFix": true
+    }
+  ]
   ```
 
 ## Rules
