@@ -1,14 +1,13 @@
 // Patches for core ESLint rules
 import noUseBeforeDefine from './patched/noUseBeforeDefine'
+import restSpreadSpacing from './patched/rest-spread-spacing'
 
 patchedRules = {}
 
 export getPatchedRule(ruleId, unpatchedRule) ->
   // Cached
   if patchedRules[ruleId]: return patchedRules[ruleId]
-
   if not patches[ruleId]: return null
-
   patchedRules[ruleId] = patches[ruleId](unpatchedRule)
 
 patchIfLsc(newRule) ->
@@ -23,10 +22,14 @@ patchIfLsc(newRule) ->
 
     intermediateRule
 
+patchAlways(newRule) ->
+  (oldRule) -> newRule
+
 nullRule = {
   create() -> {}
 }
 
 patches = {
   "no-use-before-define": patchIfLsc(noUseBeforeDefine)
+  "rest-spread-spacing": patchIfLsc(restSpreadSpacing)
 }
