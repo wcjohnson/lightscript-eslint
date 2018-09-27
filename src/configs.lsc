@@ -1,7 +1,6 @@
 export recommended = {
   rules: {
     "no-extra-semi": 0
-    "rest-spread-spacing": 0
     "no-shadow-restricted-names": 2
     "@lightscript/variables": 2
     "@lightscript/illegal-in-iife": 2
