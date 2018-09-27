@@ -44,6 +44,11 @@ module.exports = {
                 hasWhitespace = sourceCode.isSpaceBetweenTokens(operator, nextToken);
             let type;
 
+            // LightScript: for spread-loops, ignore this rule
+            if (operator && operator.type && operator.type.label === "...for") {
+              return;
+            }
+
             switch (node.type) {
                 case "SpreadElement":
                     type = "spread";
