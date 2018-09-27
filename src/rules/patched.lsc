@@ -1,10 +1,32 @@
 // Patches for core ESLint rules
 import noUseBeforeDefine from './patched/noUseBeforeDefine'
 
+patchedRules = {}
+
+export getPatchedRule(ruleId, unpatchedRule) ->
+  // Cached
+  if patchedRules[ruleId]: return patchedRules[ruleId]
+
+  if not patches[ruleId]: return null
+
+  patchedRules[ruleId] = patches[ruleId](unpatchedRule)
+
+patchIfLsc(newRule) ->
+  (oldRule) ->
+    intermediateRule = Object.assign({}, oldRule)
+
+    intermediateRule.create(context) ->
+      if context.parserServices.isLightScript():
+        newRule.create.call(this, context)
+      else:
+        oldRule.create.call(this, context)
+
+    intermediateRule
+
 nullRule = {
   create() -> {}
 }
 
-export default {
-  "no-use-before-define": noUseBeforeDefine
+patches = {
+  "no-use-before-define": patchIfLsc(noUseBeforeDefine)
 }

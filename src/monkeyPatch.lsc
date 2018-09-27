@@ -1,7 +1,7 @@
 // Monkey-patch ESlint rules.
 import Module from 'module'
 import path from 'path'
-import patchedRules from './rules/patched'
+import { getPatchedRule } from './rules/patched'
 
 let hasPatched = false
 
@@ -24,10 +24,9 @@ export monkeypatchRules(rules): void ->
   // Patch rule getter
   _get = rules.prototype.get
   nextGet = get(ruleId) -> {
-    if ruleId and patchedRules[ruleId]:
-      patchedRules[ruleId]
-    else:
-      _get.call(this, ruleId)
+    originalRule = _get.call(this, ruleId)
+    patched = getPatchedRule(ruleId, originalRule)
+    if patched: patched else: originalRule
   }
   rules.prototype.get = nextGet
 
