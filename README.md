@@ -151,6 +151,9 @@ Warn when a `,` is unnecessary according to LightScript list separator rules.
 
 ## Known Issues
 
+- Issues with hoisting ESLint outside of package root (e.g. Lerna, Yarn workspaces)
+If ESLint is hoisted outside of the root `node_modules` folder of your package, it will not be able to find the plugin and you will encounter "can't find plugin" errors. To fix this, use the `nohoist` option of your monorepo tool to ensure ESLint is not hoisted out of your package.
+
 - `no-extra-semi` rule:
 The `no-extra-semi` rule has a bug when iterating over whiteblock code. When linting LightScript files, this rule is automatically disabled. We recommend the `@lightscript/unnecessary-semi` rule instead.
 
