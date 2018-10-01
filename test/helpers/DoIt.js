@@ -97,8 +97,11 @@ let LinterTestable = class LinterTestable extends _TestRunner.Testable {
     try {
       realOpts = Object.assign({}, this.options);
       realOpts.parser = '@lightscript/eslint-plugin';
-      realOpts.plugins = ['@lightscript/eslint-plugin'];
-      // console.log("realOpts", realOpts)
+      if (realOpts.plugins) {
+        realOpts.plugins.unshift('@lightscript/eslint-plugin');
+      } else {
+        realOpts.plugins = ['@lightscript/eslint-plugin'];
+      } // console.log("realOpts", realOpts)
 
       const cliEngineOpts = {
         baseConfig: realOpts,
