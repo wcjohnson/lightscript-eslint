@@ -13,7 +13,11 @@ isImmutableDef(def) ->
   def.kind == "const"
 
 isImmutableVar(v) ->
-  isImmutableDef(v.defs[0])
+  // Treat vars from the eslint environment as immutable
+  if not v.defs[0]: true else: isImmutableDef(v.defs[0])
+
+isEslintEnvVar(v) ->
+  if not v.defs?[0]: true else: false
 
 // Get the variable from a parent scope that would be shadowed by this one
 getShadowedVar(v) ->
@@ -55,6 +59,8 @@ export default {
 
       shadowsImmutableNoRedef: "'{{name}}' shadows an immutable binding."
 
+      shadowsEnv: "'{{name}}' shadows a variable from the JavaScript environment."
+
       shadowsMutableRedef: "'{{name}}' shadows a mutable binding. Use `now` to reassign or explicit `const` to shadow the variable."
 
       shadowsMutableReassign: "'{{name}}' shadows a mutable binding. Use `now` to reassign."
@@ -87,18 +93,22 @@ export default {
 
         shadowedPairs = context.getDeclaredVariables(node)~getShadowedPairs()
         for elem { shadowed } in shadowedPairs:
-          context.report({
-            node: shadowed.defs[0]?.name or node
-            messageId: "shadowed"
-            data: { name: shadowed.name }
-          })
+          // Shadowed var could be from the eslint "env" in which case no report should
+          // be generated
+          if shadowed.defs?[0]:
+            context.report({
+              node: shadowed.defs[0]?.name or node
+              messageId: "shadowed"
+              data: { name: shadowed.name }
+            })
 
         // If shadowing an immutable variable, must use explicit `const`
         immutablePairs = shadowedPairs.filter(p -> p.shadowed~isImmutableVar())
-        for elem { shadow } in immutablePairs:
+        for elem { shadow, shadowed } in immutablePairs:
           context.report({
             node: shadow.defs[0]?.name or node
-            messageId: "shadowsImmutableRedef"
+            // `const` not needed if shadowing an env var (but still warn)
+            messageId: if shadowed~isEslintEnvVar(): "shadowsEnv" else: "shadowsImmutableRedef"
             data: { name: shadow.name }
           })
 
