@@ -1,5 +1,4 @@
 import { api } from '@lightscript/babel-preset'
-import { transform } from './transform'
 babylonToEspree = require("./babylon-to-espree");
 codeFrameColumns = require("@babel/code-frame").codeFrameColumns;
 
@@ -86,9 +85,6 @@ export function parse(code, options) {
 
     throw err;
   }
-
-  // Run required transforms on ast before shipping it to eslint
-  transform(ast);
 
   babylonToEspree(ast, null, tt, code);
 
