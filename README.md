@@ -31,7 +31,7 @@ Issues: https://github.com/wcjohnson/lightscript/issues
     $ (npm bin)/eslint --ext .js,.lsc src/
     ```
 
-`@lightscript/eslint-plugin` is fully compatible with all other ESLint plugins and can lint JavaScript as well as LightScript code.
+`@lightscript/eslint-plugin` is compatible with most other ESLint plugins and can lint JavaScript as well as LightScript code.
 
 ## The Details
 
@@ -155,7 +155,16 @@ Warn when a `,` is unnecessary according to LightScript list separator rules.
 If ESLint is hoisted outside of the root `node_modules` folder of your package, it will not be able to find the plugin and you will encounter "can't find plugin" errors. To fix this, use the `nohoist` option of your monorepo tool to ensure ESLint is not hoisted out of your package.
 
 - `no-extra-semi` rule:
-The `no-extra-semi` rule has a bug when iterating over whiteblock code. When linting LightScript files, this rule is automatically disabled. We recommend the `@lightscript/unnecessary-semi` rule instead.
+When linting LightScript files, this rule is automatically disabled. We recommend the `@lightscript/unnecessary-semi` rule instead.
+
+- `array-callback-return` rule:
+When linting LightScript files, this rule is automatically disabled. This rule
+is broken pending changes to ESLint's code path analysis; see
+[this issue](https://github.com/eslint/eslint/issues/10823)
+
+- `react/require-render-return` rule:
+When linting LightScript files, this rule is automatically disabled. Because
+of LightScript's implicit returns, this rule is almost always superfluous.
 
 Flow:
 > Check out [eslint-plugin-flowtype](https://github.com/gajus/eslint-plugin-flowtype): An `eslint` plugin that makes flow type annotations global variables and marks declarations as used. Solves the problem of false positives with `no-undef` and `no-unused-vars`.

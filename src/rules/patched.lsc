@@ -1,6 +1,7 @@
 // Patches for core ESLint rules
 import noUseBeforeDefine from './patched/noUseBeforeDefine'
 import restSpreadSpacing from './patched/rest-spread-spacing'
+import fpNoNil from './patched/fp-no-nil'
 
 patchedRules = {}
 
@@ -33,4 +34,7 @@ patches = {
   "no-use-before-define": patchIfLsc(noUseBeforeDefine)
   "rest-spread-spacing": patchIfLsc(restSpreadSpacing)
   "no-extra-semi": patchIfLsc(nullRule)
+  "array-callback-return": patchIfLsc(nullRule)
+  "fp/no-nil": patchIfLsc(fpNoNil)
+  "react/require-render-return": patchIfLsc(nullRule)
 }
