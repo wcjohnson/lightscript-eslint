@@ -122,7 +122,14 @@ function isInInitializer(variable, reference) {
             if (isInRange(node.right, location)) {
                 return true;
             }
-        } else if (isa(node, "Function")) {
+        } else if (
+            isa(node, "Function")
+            // lsc: initializer in for-in statements shouldn't count against body
+            // XXX: oneline block parsing may be part of the issue here; in
+            // multiline block case, block scoping already takes care of this
+            || isa(node, "LscForInObjectStatement")
+            || isa(node, "LscForInArrayStatement")
+        ) {
             break;
         } else if (SENTINEL_TYPE.test(node.type)) {
             break;
