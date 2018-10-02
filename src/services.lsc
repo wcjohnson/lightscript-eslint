@@ -1,5 +1,29 @@
-export getServices(ast, options, scopeManager, compilerConfig) -> {
-  // Allow linting rules to inspect the compiler configuration
-  getCompilerConfig() -> compilerConfig
-  isLightScript() -> compilerConfig.isLightScript
-}
+import { api } from '@lightscript/babel-preset'
+import { recurse, aliasesFor } from './helpers'
+import { getImplicitlyReturnedNodes } from './implicitReturns'
+{ isa } = api
+
+export getServices(ast, options, scopeManager, compilerConfig) ->
+  // Attach implicit return data to ast nodes
+  implicitReturns = new Map()
+
+  ast~recurse({
+    enter(node): void ->
+      if node~isa("Function"):
+        irn = getImplicitlyReturnedNodes(node)
+        if irn and irn.length > 0:
+          implicitReturns.set(node, irn)
+  })
+
+  // Services object
+  {
+    // Allow linting rules to inspect the compiler configuration
+    getCompilerConfig() -> compilerConfig
+    isLightScript() -> compilerConfig.isLightScript
+
+    // Get a list of implicitly returned nodes from the given function
+    getImplicitlyReturnedNodes(functionNode) -> implicitReturns.get(functionNode)
+
+    // Babel type aliasing
+    aliasesFor
+  }

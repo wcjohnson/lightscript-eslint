@@ -1,0 +1,43 @@
+// Reimplementaion of LightScript's implicit returns algorithm
+import { api } from '@lightscript/babel-preset'
+{ isa } = api
+
+// Emulate babel's path API to the extent the lsc getTails needs it
+class CheapPath:
+  constructor(node) ->
+    this.node = node
+    this.type = node.type
+
+  static makeFromParentKey(parentNode, parentPath, parentKey, parentIndex, node): CheapPath ->
+    p = new CheapPath(node)
+    p.parent = parentNode
+    p.parentPath = parentPath
+    p.parentKey = parentKey
+    if parentIndex~looseNotEq(null): p.parentIndex = parentIndex
+    p
+
+  get(k) ->
+    v = this.node[k]
+    if not v:
+      null
+    elif Array.isArray(v):
+      [...for idx i, elem e in v:
+        [CheapPath.makeFromParentKey(this.node, this, k, i, e)]
+      ]
+    elif (typeof v == 'object') and v.type:
+      CheapPath.makeFromParentKey(this.node, this, k, null, v)
+    else:
+      v
+
+isImplicitlyReturnable(node) ->
+  match node:
+    | ~isa("ExpressionStatement"), ~isa("FunctionDeclaration"), ~isa("ClassDeclaration"): true
+    | ~isa("VariableDeclaration"):
+      node.declarations.length == 1
+    | else: false
+
+export getImplicitlyReturnedNodes(functionNode) ->
+  basePath = (new CheapPath(functionNode)).get('body')
+  [...for elem p in api.getTails(basePath, false):
+    if p.node~isImplicitlyReturnable!: [p.node]
+  ]

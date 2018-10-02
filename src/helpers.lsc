@@ -3,3 +3,22 @@ t = api.types
 
 export aliasesFor(type) ->
   t.FLIPPED_ALIAS_KEYS[type]
+
+export function recurse(node, visitor, parent) {
+  if(visitor.enter) visitor.enter(node, parent);
+  keyLoop: for (var key in node) {
+    if ((key[0] === "_") || (key === "tokens")) continue;
+    var val = node[key];
+    if (val) {
+      if (val.type) {
+        recurse(val, visitor, node)
+      } else if (Array.isArray(val)) {
+        if ((val[0] != null) && (typeof val[0] !== "object")) continue keyLoop;
+        for (var i = 0, len = val.length; i < len; i++) {
+          recurse(val[i], visitor, node)
+        }
+      }
+    }
+  }
+  if(visitor.exit) visitor.exit(node, parent)
+}
