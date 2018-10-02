@@ -1,0 +1,9 @@
+{
+  "plugins": [ "react" ],
+  "rules": {
+    "no-unused-vars": 1,
+    "no-undef": 1,
+    "array-callback-return": 1,
+    "react/require-render-return": 1
+  }
+}
