@@ -117,13 +117,13 @@ Warns about erroneous use of variables and assignment in LightScript, including 
 - Included in `recommended` preset.
 - Contains automatic fixes for missing `now`.
 
-### `@lightscript/illegal-in-iife`
+### `@lightscript/no-illegal-in-iife`
 
 Warns about the use of language constructs that are illegal because the compiler will generate an IIFE around them. These notices should be treated as fatal, as the compiler will throw an error in such cases. This rule should always be enabled when linting LightScript code.
 
 - Included in `recommended` preset.
 
-### `@lightscript/implicit-imports`
+### `@lightscript/no-implicit-imports`
 
 Warn whenever the use of an identifier would trigger an implicit import by the compiler. Such instances are not necessarily errors, but can be handy so that you don't accidentally implicitly import something.
 
@@ -131,19 +131,19 @@ Warn whenever the use of an identifier would trigger an implicit import by the c
 
 Warn when a `match` is missing an `else` case. Can be used to ensure all pattern matches are exhaustive.
 
-### `@lightscript/unnecessary-const`
+### `@lightscript/no-unnecessary-const`
 
 Warn when a `const` keyword is unnecessary because of LightScript implicit `const`.
 
 - Included in `recommended` preset.
 
-### `@lightscript/unnecessary-semi`
+### `@lightscript/no-unnecessary-semi`
 
 Warn when a `;` is unnecessary according to LightScript ASI rules.
 
 - Included in `recommended` preset.
 
-### `@lightscript/unnecessary-comma`
+### `@lightscript/no-unnecessary-comma`
 
 Warn when a `,` is unnecessary according to LightScript list separator rules.
 
