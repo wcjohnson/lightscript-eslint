@@ -107,7 +107,9 @@ class LscReferencer extends analyze.Referencer {
   }
 
   LscSpreadLoop(node): void -> {
+    this.setTails(node)
     this.visit(node.loop)
+    this.clearTails(node)
   }
 
   LscNamedArrowDeclaration(node): void -> {

@@ -47,6 +47,8 @@ export getTailExpressions(baseNode) ->
         .concat(getTails(basePath.get('alternate'), false))
     | ~isa("LscMatchExpression"):
       [...for elem c in basePath.get('cases'): getTails(c.get('consequent'))]
+    | ~isa("LscSpreadLoop"):
+      getTails(basePath.get('loop').get('body'), true)
     | else: []
 
   [...for elem t in tails: if t.node~isTailExpression!: [t.node]]
