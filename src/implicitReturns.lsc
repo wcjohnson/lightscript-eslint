@@ -1,6 +1,6 @@
 // Reimplementaion of LightScript's implicit returns algorithm
 import { api } from '@lightscript/babel-preset'
-{ isa } = api
+{ isa, getTails } = api
 
 // Emulate babel's path API to the extent the lsc getTails needs it
 class CheapPath:
@@ -29,15 +29,24 @@ class CheapPath:
     else:
       v
 
-isImplicitlyReturnable(node) ->
+// Check if a tail is an expression or convertible to an expression
+isTailExpression(node) ->
   match node:
     | ~isa("ExpressionStatement"), ~isa("FunctionDeclaration"), ~isa("ClassDeclaration"): true
     | ~isa("VariableDeclaration"):
       node.declarations.length == 1
     | else: false
 
-export getImplicitlyReturnedNodes(functionNode) ->
-  basePath = (new CheapPath(functionNode)).get('body')
-  [...for elem p in api.getTails(basePath, false):
-    if p.node~isImplicitlyReturnable!: [p.node]
-  ]
+export getTailExpressions(baseNode) ->
+  basePath = new CheapPath(baseNode)
+  tails = match baseNode:
+    | ~isa("Function"):
+      getTails(basePath.get('body'), false)
+    | ~isa("LscIfExpression"):
+      getTails(basePath.get('consequent'), false)
+        .concat(getTails(basePath.get('alternate'), false))
+    | ~isa("LscMatchExpression"):
+      [...for elem c in basePath.get('cases'): getTails(c.get('consequent'))]
+    | else: []
+
+  [...for elem t in tails: if t.node~isTailExpression!: [t.node]]
