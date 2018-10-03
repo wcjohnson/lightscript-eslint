@@ -1,0 +1,4 @@
+[
+  "6:5 '@lightscript/runtime' will be implicitly imported. @lightscript/no-implicit-imports",
+  "9:5 '@lightscript/runtime' will be implicitly imported. @lightscript/no-implicit-imports"
+]

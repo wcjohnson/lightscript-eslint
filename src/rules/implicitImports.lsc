@@ -1,3 +1,28 @@
+isUndefined(node) ->
+  node.type == "Identifier" and node.name == "undefined"
+
+isSignedNumber(node) ->
+  node.type == "UnaryExpression" and
+  (node.operator == "+" or node.operator == "-") and
+  node.argument.type == "Literal"
+
+isStrictEqualityLiteral(node) ->
+  node.type == "Literal" or
+  node~isUndefined() or
+  node~isSignedNumber()
+
+isLogicalAndOr(node) -> node.type == "LogicalExpression"
+isLogicalNot(node) -> node.type == "UnaryExpression" and node.operator == "!"
+isPredicate(node) -> node.type == "LscTildeCallExpression"
+
+isBadMatchAtom(node) ->
+  match node:
+    | ~isLogicalAndOr(): isBadMatchAtom(node.left) or isBadMatchAtom(node.right)
+    | ~isLogicalNot(): isBadMatchAtom(node.argument)
+    | ~isPredicate(): false
+    | ~isStrictEqualityLiteral(): false
+    | else: true
+
 export default {
   meta: {
     docs: {
@@ -5,7 +30,8 @@ export default {
       category: "Possible Errors"
     }
     messages: {
-      implicitImport: "'{{name}}' will be implicitly imported from {{source}}."
+      unnamedImplicitImport: "'{{source}}' will be implicitly imported."
+      implicitImport: "'{{name}}' will be implicitly imported from '{{source}}'."
     }
     fixable: false
     schema: []
@@ -13,14 +39,34 @@ export default {
   create(context) -> {
     if not context.parserServices.isLightScript(): return {}
 
+    visitMatch(node) -> {
+      if node.binding and node.assertive:
+        context.report({
+          node: node.binding
+          messageId: "unnamedImplicitImport"
+          data: { source: '@lightscript/runtime' }
+        })
+
+      // Non-literal atoms
+      for elem atom in node.atoms or []:
+        if atom~isBadMatchAtom():
+          context.report({
+            node: atom
+            messageId: "unnamedImplicitImport"
+            data: { source: '@lightscript/runtime' }
+          })
+    }
+
     {
+      LscMatchCase: visitMatch
+
       "Program:exit": (node) ->
         scopeManager = context.getSourceCode().scopeManager
         for elem id in (scopeManager._lscLodashImports or []):
           context.report({
             node: id
             messageId: "implicitImport"
-            data: { name: id.name, source: 'lodash' }
+            data: { name: id.name, source: `lodash/${id.name}` }
           })
     }
   } // create

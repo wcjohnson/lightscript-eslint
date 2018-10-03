@@ -9,7 +9,7 @@ import unnecessaryComma from './unnecessaryComma'
 rules = {
   variables
   "illegal-in-iife": illegalInIife
-  "implicit-imports": implicitImports
+  "no-implicit-imports": implicitImports
   "match-requires-else": matchRequiresElse
   "unnecessary-const": unnecessaryConst
   "unnecessary-semi": unnecessarySemi

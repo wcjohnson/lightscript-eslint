@@ -5,7 +5,7 @@
     "no-const-assign": 1,
     "@lightscript/variables": 1,
     "@lightscript/illegal-in-iife": 1,
-    "@lightscript/implicit-imports": 1,
+    "@lightscript/no-implicit-imports": 1,
     "@lightscript/match-requires-else": 1,
     "@lightscript/unnecessary-const": 1,
     "@lightscript/unnecessary-semi": 1,
