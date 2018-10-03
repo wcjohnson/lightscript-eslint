@@ -3,6 +3,9 @@ import { aliasesFor } from './helpers'
 { isa } = api
 
 export getServices(ast, options, scopeManager, compilerConfig) ->
+  tailsByNode = scopeManager._tailsByNode
+  allTails = scopeManager._tails
+
   // Services object
   {
     // Allow linting rules to inspect the compiler configuration
@@ -10,9 +13,11 @@ export getServices(ast, options, scopeManager, compilerConfig) ->
     isLightScript() -> compilerConfig.isLightScript
 
     // Get a list of implicitly returned nodes from the given function
-    getImplicitlyReturnedNodes(functionNode) ->
-      rst = scopeManager._transformedTails.get(functionNode)
-      rst
+    getImplicitlyReturnedNodes(node) -> tailsByNode.get(node)
+
+    // Determine if a node is in tail position and therefore used by
+    // a LightScript implicit return
+    isTailNode(node) -> allTails.get(node)
 
     // Babel type aliasing
     aliasesFor

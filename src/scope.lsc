@@ -16,7 +16,8 @@ class LscReferencer extends analyze.Referencer {
     super(options, scopeManager)
     // Tails that will be transformed by the compiler into implicit
     // returns or other constructs, indexed by the container node
-    this.transformedTails = new Map()
+    this.transformedTails = scopeManager._tailsByNode
+    this.allTails = scopeManager._tails
     this.tailsStack = []
   }
 
@@ -25,7 +26,9 @@ class LscReferencer extends analyze.Referencer {
   ////////////////
   setTails(node): void -> {
     tails = node~getTailExpressions!
-    if tails.length > 0: this.transformedTails.set(node, tails)
+    if tails.length > 0:
+      this.transformedTails.set(node, tails)
+      for elem t in tails: this.allTails.set(t, true)
     this.tailsStack.push(tails)
   }
 
@@ -259,6 +262,8 @@ class LscScopeManager extends ScopeManager {
     this._lscCompilerConfig = compilerConfig
     this._lscLodashImports = []
     this._lscInlinedOperators = []
+    this._tailsByNode = new Map()
+    this._tails = new Map()
   }
 
   __nestGlobalScope(node) -> {
@@ -286,7 +291,5 @@ export analyzeScope(ast, parserOptions, compilerConfig) ->
   referencer = new LscReferencer(options, scopeManager)
 
   referencer.visit(ast)
-
-  scopeManager._transformedTails = referencer.transformedTails
 
   scopeManager
