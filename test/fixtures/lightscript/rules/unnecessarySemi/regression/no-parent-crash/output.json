@@ -1,6 +1,6 @@
 [
-  "4:9 Unnecessary `const`. @lightscript/unnecessary-const",
-  "9:42 Unnecessary semicolon. @lightscript/unnecessary-semi",
-  "9:42 Unnecessary semicolon. @lightscript/unnecessary-semi",
+  "4:9 Unnecessary `const`. @lightscript/no-unnecessary-const",
+  "9:42 Unnecessary semicolon. @lightscript/no-unnecessary-semi",
+  "9:42 Unnecessary semicolon. @lightscript/no-unnecessary-semi",
   "34:28 'activeNode' is defined but never used. no-unused-vars"
 ]

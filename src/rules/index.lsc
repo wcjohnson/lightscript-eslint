@@ -8,12 +8,12 @@ import unnecessaryComma from './unnecessaryComma'
 
 rules = {
   variables
-  "illegal-in-iife": illegalInIife
+  "no-illegal-in-iife": illegalInIife
   "no-implicit-imports": implicitImports
   "match-requires-else": matchRequiresElse
-  "unnecessary-const": unnecessaryConst
-  "unnecessary-semi": unnecessarySemi
-  "unnecessary-comma": unnecessaryComma
+  "no-unnecessary-const": unnecessaryConst
+  "no-unnecessary-semi": unnecessarySemi
+  "no-unnecessary-comma": unnecessaryComma
 }
 
 export default rules
