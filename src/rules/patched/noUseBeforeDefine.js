@@ -217,7 +217,7 @@ module.exports = {
                 if (reference.init ||
                     !variable ||
                     variable.identifiers.length === 0 ||
-                    (variable.identifiers[0].range[1] < reference.identifier.range[1] && !isInInitializer(variable, reference)) ||
+                    (variable.identifiers[0].range[1] <= reference.identifier.range[1] && !isInInitializer(variable, reference)) ||
                     !isForbidden(variable, reference)
                 ) {
                     return;
