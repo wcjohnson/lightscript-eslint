@@ -207,6 +207,10 @@ class LscReferencer extends analyze.Referencer {
   LscPlaceholderExpression(node): void -> {
   }
 
+  LscTryStatement(node): void -> {
+    this.visitChildren(node)
+  }
+
   LscTryExpression(node): void -> {
     this.setTails(node)
     this.visitChildren(node)
