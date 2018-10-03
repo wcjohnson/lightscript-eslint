@@ -1,6 +1,7 @@
 import { api } from '@lightscript/babel-preset'
 import analyze from './analyze-scope'
 import childVisitorKeys from './visitor-keys'
+import { getTailExpressions } from './implicitReturns'
 
 import { Reference, ScopeManager } from 'eslint-scope'
 Definition = require("eslint-scope/lib/definition").Definition
@@ -11,15 +12,41 @@ fallback = require("eslint-visitor-keys").getKeys
 { isPotentialImplicitLodashImport, isPotentialInlinedOperator } = tooling
 
 class LscReferencer extends analyze.Referencer {
-  LscTildeCallExpression(node) -> {
-    this.visitChildren(node)
+  constructor(options, scopeManager) -> {
+    super(options, scopeManager)
+    // Tails that will be transformed by the compiler into implicit
+    // returns or other constructs, indexed by the container node
+    this.transformedTails = new Map()
+    this.tailsStack = []
   }
 
-  LscOptionalTildeCallExpression(node) -> {
-    this.visitChildren(node)
+  ////////////////
+  // Helpers
+  ////////////////
+  setTails(node): void -> {
+    tails = node~getTailExpressions!
+    if tails.length > 0: this.transformedTails.set(node, tails)
+    this.tailsStack.push(tails)
   }
 
-  visitImplicitConstDecl(node, patternContainer, iteratee) -> {
+  clearTails(node): void -> {
+    this.tailsStack.pop()
+  }
+
+  isTail(node): boolean -> {
+    if this.tailsStack.length > 0:
+      this.tailsStack[this.tailsStack.length - 1].indexOf(node) > -1
+    else:
+      false
+  }
+
+  visitFunction(node): void -> {
+    this.setTails(node)
+    super.visitFunction(node)
+    this.clearTails(node)
+  }
+
+  visitImplicitConstDecl(node, patternContainer, iteratee): void -> {
     if not patternContainer: return
     this.visitPattern(patternContainer, { processRightHandNodes: true }, (pattern, info) => {
       this.referencingDefaultValue(pattern, info.assignments, null, false);
@@ -32,7 +59,7 @@ class LscReferencer extends analyze.Referencer {
     })
   }
 
-  visitEnhancedForIn(node) -> {
+  visitEnhancedForIn(node): void -> {
     this.scopeManager.__nestForScope(node)
     this.visitImplicitConstDecl(node, node.elem, node.array)
     this.visitImplicitConstDecl(node, node.idx, node.array)
@@ -56,19 +83,31 @@ class LscReferencer extends analyze.Referencer {
       super.visitForIn(node)
   }
 
-  LscForInArrayStatement(node) -> {
+  ///////////////////////
+  // Visitors
+  ///////////////////////
+
+  LscTildeCallExpression(node): void -> {
+    this.visitChildren(node)
+  }
+
+  LscOptionalTildeCallExpression(node): void -> {
+    this.visitChildren(node)
+  }
+
+  LscForInArrayStatement(node): void -> {
     this.visitEnhancedForIn(node)
   }
 
-  LscForInObjectStatement(node) -> {
+  LscForInObjectStatement(node): void -> {
     this.visitEnhancedForIn(node)
   }
 
-  LscSpreadLoop(node) -> {
+  LscSpreadLoop(node): void -> {
     this.visit(node.loop)
   }
 
-  LscNamedArrowDeclaration(node) -> {
+  LscNamedArrowDeclaration(node): void -> {
     if node.skinny:
       // Basically a FunctionDeclaration
       node.type = "FunctionDeclaration"
@@ -84,6 +123,26 @@ class LscReferencer extends analyze.Referencer {
       node.type = "ArrowFunctionExpression"
       this.visitFunction(node)
       node.type = "LscNamedArrowDeclaration"
+
+    // If in tail position, add a reference in the containing scope
+    if node.id and this.isTail(node):
+      this.currentScope().__referencing(node.id)
+  }
+
+  FunctionDeclaration(node): void -> {
+    super.FunctionDeclaration(node)
+
+    // If in tail position, add a reference in the containing scope
+    if node.id and this.isTail(node):
+      this.currentScope().__referencing(node.id)
+  }
+
+  ClassDeclaration(node): void -> {
+    super.ClassDeclaration(node)
+
+    // If in tail position, add a reference in the containing scope
+    if node.id and this.isTail(node):
+      this.currentScope().__referencing(node.id)
   }
 
   LscNamedArrowExpression(node): void -> {
@@ -110,15 +169,19 @@ class LscReferencer extends analyze.Referencer {
       node.type = "LscNamedArrowMemberExpression"
   }
 
-  LscIfExpression(node) -> {
+  LscIfExpression(node): void -> {
+    this.setTails(node)
     this.visitChildren(node)
+    this.clearTails(node)
   }
 
-  LscMatchExpression(node) -> {
+  LscMatchExpression(node): void -> {
+    this.setTails(node)
     this.visitChildren(node)
+    this.clearTails(node)
   }
 
-  LscMatchStatement(node) -> {
+  LscMatchStatement(node): void -> {
     this.visitChildren(node)
   }
 
@@ -135,20 +198,22 @@ class LscReferencer extends analyze.Referencer {
     if node.binding: this.close(node)
   }
 
-  LscMatchElse(node) -> {
+  LscMatchElse(node): void -> {
   }
 
-  LscMatchPlaceholderExpression(node) -> {
+  LscMatchPlaceholderExpression(node): void -> {
   }
 
-  LscPlaceholderExpression(node) -> {
+  LscPlaceholderExpression(node): void -> {
   }
 
-  LscTryExpression(node) -> {
+  LscTryExpression(node): void -> {
+    this.setTails(node)
     this.visitChildren(node)
+    this.clearTails(node)
   }
 
-  LscSafeAwaitExpression(node) -> {
+  LscSafeAwaitExpression(node): void -> {
     this.visitChildren(node)
   }
 }
@@ -217,5 +282,7 @@ export analyzeScope(ast, parserOptions, compilerConfig) ->
   referencer = new LscReferencer(options, scopeManager)
 
   referencer.visit(ast)
+
+  scopeManager._transformedTails = referencer.transformedTails
 
   scopeManager
