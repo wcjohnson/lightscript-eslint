@@ -42,10 +42,12 @@ export default {
       const prevToken = sourceCode.getLastToken(node, 1);
       const nextToken = sourceCode.getTokenAfter(node);
 
-      return !!nextToken && isTokenOnSameLine(prevToken, nextToken);
+      return !!prevToken && !!nextToken && isTokenOnSameLine(prevToken, nextToken);
     }
 
     canRemoveSemicolon(node, semi): boolean -> {
+      if node.type == "EmptyStatement": return true
+
       if (isRedundantSemi(semi)) {
           return true; // `;;` or `;}`
       }
