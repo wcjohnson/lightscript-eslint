@@ -4,6 +4,7 @@ import restSpreadSpacing from './patched/rest-spread-spacing'
 import noUnusedExpressions from './patched/no-unused-expressions'
 import fpNoNil from './patched/fp-no-nil'
 import functionParenNewline from './patched/function-paren-newline'
+import arrowSpacing from './patched/arrow-spacing'
 
 patchedRules = {}
 
@@ -36,6 +37,7 @@ patches = {
   "indent": patchIfLsc(nullRule)
   "no-use-before-define": patchIfLsc(noUseBeforeDefine)
   "rest-spread-spacing": patchIfLsc(restSpreadSpacing)
+  "arrow-spacing": patchIfLsc(arrowSpacing)
   "no-extra-semi": patchIfLsc(nullRule)
   "array-callback-return": patchIfLsc(nullRule)
   "no-unused-expressions": patchIfLsc(noUnusedExpressions)

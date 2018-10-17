@@ -16,3 +16,11 @@ export isFunction(node) -> {
 export isTokenOnSameLine(left, right) -> {
   return left.loc.end.line === right.loc.start.line;
 }
+
+export isArrowToken(token) -> {
+  if token.type !== "Punctuator": return false
+
+  match token.value:
+    | '->', '=>', '-/>', '=/>', '-*>', '=*>', '-*/>', '=*/>': true
+    | else: false
+}
