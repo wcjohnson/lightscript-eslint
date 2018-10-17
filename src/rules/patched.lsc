@@ -33,6 +33,7 @@ nullRule = {
 }
 
 patches = {
+  "indent": patchIfLsc(nullRule)
   "no-use-before-define": patchIfLsc(noUseBeforeDefine)
   "rest-spread-spacing": patchIfLsc(restSpreadSpacing)
   "no-extra-semi": patchIfLsc(nullRule)
