@@ -5,6 +5,7 @@ import noUnusedExpressions from './patched/no-unused-expressions'
 import fpNoNil from './patched/fp-no-nil'
 import functionParenNewline from './patched/function-paren-newline'
 import arrowSpacing from './patched/arrow-spacing'
+import keywordSpacing from './patched/keyword-spacing'
 
 patchedRules = {}
 
@@ -38,6 +39,7 @@ patches = {
   "no-use-before-define": patchIfLsc(noUseBeforeDefine)
   "rest-spread-spacing": patchIfLsc(restSpreadSpacing)
   "arrow-spacing": patchIfLsc(arrowSpacing)
+  "keyword-spacing": patchIfLsc(keywordSpacing)
   "no-extra-semi": patchIfLsc(nullRule)
   "array-callback-return": patchIfLsc(nullRule)
   "no-unused-expressions": patchIfLsc(noUnusedExpressions)

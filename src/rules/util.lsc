@@ -4,6 +4,10 @@ export isOpeningParenToken(token) -> {
   return token.value === "(" && token.type === "Punctuator";
 }
 
+export isNotOpeningParenToken(token) -> {
+  return not isOpeningParenToken(token);
+}
+
  export isClosingParenToken(token) -> {
   return token.value === ")" && token.type === "Punctuator";
 }
@@ -23,4 +27,8 @@ export isArrowToken(token) -> {
   match token.value:
     | '->', '=>', '-/>', '=/>', '-*>', '=*>', '-*/>', '=*/>': true
     | else: false
+}
+
+export isKeywordToken(token) -> {
+  return token.type === "Keyword";
 }
