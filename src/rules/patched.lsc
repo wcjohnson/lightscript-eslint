@@ -3,6 +3,7 @@ import noUseBeforeDefine from './patched/noUseBeforeDefine'
 import restSpreadSpacing from './patched/rest-spread-spacing'
 import noUnusedExpressions from './patched/no-unused-expressions'
 import fpNoNil from './patched/fp-no-nil'
+import functionParenNewline from './patched/function-paren-newline'
 
 patchedRules = {}
 
@@ -37,6 +38,7 @@ patches = {
   "no-extra-semi": patchIfLsc(nullRule)
   "array-callback-return": patchIfLsc(nullRule)
   "no-unused-expressions": patchIfLsc(noUnusedExpressions)
+  "function-paren-newline": patchIfLsc(functionParenNewline)
   "fp/no-nil": patchIfLsc(fpNoNil)
   "react/require-render-return": patchIfLsc(nullRule)
 }

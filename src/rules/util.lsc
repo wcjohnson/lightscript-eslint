@@ -1,0 +1,18 @@
+const anyFunctionPattern = /^(?:Function(?:Declaration|Expression)|ArrowFunctionExpression)$/;
+
+export isOpeningParenToken(token) -> {
+  return token.value === "(" && token.type === "Punctuator";
+}
+
+ export isClosingParenToken(token) -> {
+  return token.value === ")" && token.type === "Punctuator";
+}
+
+// XXX: not correct
+export isFunction(node) -> {
+  return Boolean(node && anyFunctionPattern.test(node.type));
+}
+
+export isTokenOnSameLine(left, right) -> {
+  return left.loc.end.line === right.loc.start.line;
+}
