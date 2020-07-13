@@ -1,5 +1,3 @@
-import { aliasesFor } from '../helpers'
-
 export default {
   meta: {
     docs: {
@@ -14,6 +12,7 @@ export default {
   }
   create(context) -> {
     if not context.parserServices.isLightScript(): return {}
+    { aliasesFor } = context.parserServices
 
     fnStack = []
 

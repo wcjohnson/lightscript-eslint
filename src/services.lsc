@@ -1,6 +1,5 @@
 import { api } from '@lightscript/babel-preset'
-import { aliasesFor } from './helpers'
-{ isa } = api
+{ isa, getAliasesFor } = api
 
 export getServices(ast, options, scopeManager, compilerConfig) ->
   tailsByNode = scopeManager._tailsByNode
@@ -20,6 +19,6 @@ export getServices(ast, options, scopeManager, compilerConfig) ->
     isTailNode(node) -> allTails.get(node)
 
     // Babel type aliasing
-    aliasesFor
+    aliasesFor: getAliasesFor
     isa
   }

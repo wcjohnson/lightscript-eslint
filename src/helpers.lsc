@@ -1,18 +1,6 @@
 import { api } from '@lightscript/babel-preset'
 t = api.types
 
-aliases = {}
-
-export aliasesFor(type) ->
-  if aliases[type]: return aliases[type]
-
-  aliases[type] = if t.PLUGIN_ALIAS_KEYS?[type]:
-    t.FLIPPED_ALIAS_KEYS[type].concat(t.PLUGIN_ALIAS_KEYS[type])
-  else:
-    t.FLIPPED_ALIAS_KEYS[type]
-
-  aliases[type]
-
 export function recurse(node, visitor, parent) {
   if(visitor.enter) visitor.enter(node, parent);
   keyLoop: for (var key in node) {

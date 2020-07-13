@@ -1,5 +1,3 @@
-import { aliasesFor } from '../helpers'
-
 function isSemicolonToken(token) {
     return token.value === ";" && token.type === "Punctuator";
 }
@@ -26,6 +24,7 @@ export default {
   }
   create(context) -> {
     if not context.parserServices.isLightScript(): return {}
+    { aliasesFor } = context.parserServices
     sourceCode = context.getSourceCode()
 
     // c/p eslint semi rule
