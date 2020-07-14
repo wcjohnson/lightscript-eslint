@@ -6,5 +6,7 @@ export recommended = {
     "@lightscript/no-unnecessary-const": 1
     "@lightscript/no-unnecessary-semi": 1
     "@lightscript/no-unnecessary-comma": 1
+    "constructor-super": 0
+    "no-this-before-super": 0
   }
 }
