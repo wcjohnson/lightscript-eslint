@@ -4,6 +4,9 @@ isSingleConstDecl(node) ->
   (not node.extra?.implicit) and
   node.declarations?.length == 1
 
+getShadowedVar(v) ->
+  v.scope?.upper?.set.get(v.name)
+
 export default {
   meta: {
     docs: {
@@ -22,6 +25,11 @@ export default {
     {
       VariableDeclaration(node): void -> {
         if node~isSingleConstDecl():
+          // Const is necessary if this variable shadows another
+          variable = (context.getDeclaredVariables(node))[0]
+          shadowing = getShadowedVar(variable)
+          if shadowing: return
+
           sourceCode = context.getSourceCode()
           constToken = sourceCode.getFirstToken(node)
           nextToken = sourceCode.getTokenAfter(constToken)
