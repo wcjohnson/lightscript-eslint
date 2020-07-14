@@ -120,6 +120,9 @@ module.exports = {
                 // LSC: if node is implicitly returned, it's fine
                 if (context.parserServices.isTailNode(node)) return;
 
+                // LSC: NamedArrowMemberExprs are never unused
+                if (context.parserServices.isa(node.expression, "LscNamedArrowMemberExpression")) return;
+
                 if (!isValidExpression(node.expression) && !isDirective(node, context.getAncestors())) {
                     context.report({ node, message: "Expected an assignment or function call and instead saw an expression." });
                 }
