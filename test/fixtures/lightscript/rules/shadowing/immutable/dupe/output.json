@@ -1,4 +1,4 @@
 [
-  "1:1 'x', originally defined here, is illegally shadowed later. @lightscript/variables",
+  "1:1 'x', originally defined here, is illegally shadowed elsewhere. @lightscript/variables",
   "2:1 'x' shadows an immutable binding. @lightscript/variables"
 ]

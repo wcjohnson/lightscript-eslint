@@ -1,4 +1,4 @@
 [
-  "1:7 'C', originally defined here, is illegally shadowed later. @lightscript/variables",
+  "1:7 'C', originally defined here, is illegally shadowed elsewhere. @lightscript/variables",
   "3:3 'C' shadows an immutable binding. Rename the variable or use explicit `const` to shadow the existing variable. @lightscript/variables"
 ]
