@@ -53,7 +53,7 @@ export default {
     messages: {
       notNowAssign: "Incorrect assignment. To reassign, use `now`. To declare a `const` variable, put on a separate line."
 
-      shadowed: "'{{name}}', originally defined here, is illegally shadowed later."
+      shadowed: "'{{name}}', originally defined here, is illegally shadowed elsewhere."
 
       shadowsImmutableRedef: "'{{name}}' shadows an immutable binding. Rename the variable or use explicit `const` to shadow the existing variable."
 
