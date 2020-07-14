@@ -1,4 +1,8 @@
+import { api } from '@lightscript/babel-preset'
+{ isa } = api
+
 const anyFunctionPattern = /^(?:Function(?:Declaration|Expression)|ArrowFunctionExpression)$/;
+const anyLoopPattern = /^(?:DoWhile|For|ForIn|ForOf|While)Statement$/;
 
 export isOpeningParenToken(token) -> {
   return token.value === "(" && token.type === "Punctuator";
@@ -14,7 +18,7 @@ export isNotOpeningParenToken(token) -> {
 
 // XXX: not correct
 export isFunction(node) -> {
-  return Boolean(node && anyFunctionPattern.test(node.type));
+  node~isa("Function")
 }
 
 export isTokenOnSameLine(left, right) -> {
@@ -31,4 +35,38 @@ export isArrowToken(token) -> {
 
 export isKeywordToken(token) -> {
   return token.type === "Keyword";
+}
+
+export function isLoop(node) {
+  node~isa("Loop")
+}
+
+/**
+ * Checks whether the given node is in a loop or not.
+ *
+ * @param {ASTNode} node - The node to check.
+ * @returns {boolean} `true` if the node is in a loop.
+ */
+export function isInLoop(node) {
+    for (let currentNode = node; currentNode && !isFunction(currentNode); now currentNode = currentNode.parent) {
+        if (isLoop(currentNode)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Finds a function node from ancestors of a node.
+ * @param {ASTNode} node - A start node to find.
+ * @returns {Node|null} A found function node.
+ */
+export function getUpperFunction(node) {
+    for (let currentNode = node; currentNode; now currentNode = currentNode.parent) {
+        if (isFunction(currentNode)) {
+            return currentNode;
+        }
+    }
+    return null;
 }

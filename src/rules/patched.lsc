@@ -6,6 +6,7 @@ import fpNoNil from './patched/fp-no-nil'
 import functionParenNewline from './patched/function-paren-newline'
 import arrowSpacing from './patched/arrow-spacing'
 import keywordSpacing from './patched/keyword-spacing'
+import noUnusedVars from './patched/no-unused-vars'
 
 patchedRules = {}
 
@@ -46,4 +47,5 @@ patches = {
   "function-paren-newline": patchIfLsc(functionParenNewline)
   "fp/no-nil": patchIfLsc(fpNoNil)
   "react/require-render-return": patchIfLsc(nullRule)
+  "no-unused-vars": patchIfLsc(noUnusedVars)
 }
