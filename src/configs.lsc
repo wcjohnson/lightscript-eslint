@@ -9,5 +9,6 @@ export recommended = {
     "constructor-super": 0
     "no-this-before-super": 0
     "no-unreachable": 0
+    "getter-return": 0
   }
 }
