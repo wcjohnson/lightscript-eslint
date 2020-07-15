@@ -1,6 +1,6 @@
 {
   "name": "@lightscript/eslint-plugin",
-  "version": "4.0.0-alpha.29",
+  "version": "4.0.0-alpha.30",
   "description": "LightScript plugin for the ESLint linter.",
   "main": "lib/index.js",
   "files": [
@@ -44,7 +44,7 @@
     "url": "https://github.com/wcjohnson/lightscript/issues"
   },
   "devDependencies": {
-    "@lightscript/babel-preset": "4.0.0-alpha.29",
+    "@lightscript/babel-preset": "4.0.0-alpha.30",
     "@oigroup/babel-preset-lightscript": "^3.1.1",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
