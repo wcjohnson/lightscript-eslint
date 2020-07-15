@@ -1,5 +1,4 @@
 [
   "4:9 Unnecessary `const`. @lightscript/no-unnecessary-const",
-  "9:42 Unnecessary semicolon. @lightscript/no-unnecessary-semi",
   "9:42 Unnecessary semicolon. @lightscript/no-unnecessary-semi"
 ]
