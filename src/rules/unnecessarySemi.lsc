@@ -26,6 +26,7 @@ export default {
     if not context.parserServices.isLightScript(): return {}
     { aliasesFor } = context.parserServices
     sourceCode = context.getSourceCode()
+    markedLocations = new Map()
 
     // c/p eslint semi rule
     isRedundantSemi(semiToken): boolean -> {
@@ -33,7 +34,8 @@ export default {
 
       return (
           !nextToken ||
-          isSemicolonToken(nextToken)
+          isSemicolonToken(nextToken) ||
+          isClosingBraceToken(nextToken)
       );
     }
 
@@ -56,6 +58,21 @@ export default {
       return true;
     }
 
+    // A semicolon might end multiple nested statements.
+    // Don't redundantly report the same semicolon multiple times
+    markLocation(node, lastToken): void -> {
+      { end } = node
+      if markedLocations.get(end): return
+      markedLocations.set(end, true)
+
+      context.report({
+        node
+        loc: lastToken.loc
+        messageId: 'unnecessarySemi'
+        fix(fixer) -> fixer.removeRange(lastToken.range)
+      })
+    }
+
     checkSemicolon(node): void -> {
       lastToken = sourceCode.getLastToken(node)
 
@@ -63,12 +80,7 @@ export default {
         lastToken~isSemicolonToken() and
         canRemoveSemicolon(node, lastToken)
       ):
-        context.report({
-          node
-          loc: lastToken.loc
-          messageId: 'unnecessarySemi'
-          fix(fixer) -> fixer.removeRange(lastToken.range)
-        })
+        markLocation(node, lastToken)
     }
 
     enterStatement(node): void -> {
@@ -84,6 +96,8 @@ export default {
     }
 
     // Visit all Statements and check for semis
-    { ...for elem alias in aliasesFor("Statement"): { [alias]: enterStatement } }
+    { ...for elem alias in aliasesFor("Statement"):
+      { [alias]: enterStatement }
+    }
   }
 }
