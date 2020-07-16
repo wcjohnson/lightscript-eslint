@@ -20,7 +20,6 @@ Issues: https://github.com/wcjohnson/lightscript/issues
       "parser": "@lightscript/eslint-plugin",
       "plugins": ["@lightscript/eslint-plugin"],
       "extends": [
-        "eslint:recommended",
         "plugin:@lightscript/recommended"
       ]
     }
@@ -56,12 +55,11 @@ to your ESLint configuration as both a parser and a plugin:
 ```
 
 No further configuration is specifically required in order to use the plugin, but to get the most out of it, we recommend enabling
-our `recommended` ruleset, as well as the ESLint recommendations, by adding the following as well:
+our `recommended` ruleset. Our `recommended` ruleset includes the basic ESLint recommended ruleset, along with disabling some broken rules and adding LightScript-specific rules. Enable it by adding the following to your config:
 
 ```json
 {
   "extends": [
-    "eslint:recommended",
     "plugin:@lightscript/recommended"
   ]
 }
@@ -85,10 +83,7 @@ $ eslint --ext .js,.lsc src/
   "eslint.validate": [
     "javascript",
     "javascriptreact",
-    {
-      "language": "lightscript",
-      "autoFix": true
-    }
+    "lightscript"
   ]
   ```
 
