@@ -1,6 +1,6 @@
 [
-  "1:1 'x' is assigned a value but never used. no-unused-vars",
+  "1:1 'x' is assigned a value but never used. @lightscript/no-unused-vars",
   "1:8 'y' is not defined. no-undef",
-  "2:3 'z' is assigned a value but never used. no-unused-vars",
+  "2:3 'z' is assigned a value but never used. @lightscript/no-unused-vars",
   "4:3 'w' is not defined. no-undef"
 ]

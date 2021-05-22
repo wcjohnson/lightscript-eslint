@@ -1,10 +1,10 @@
 {
   "plugins": [ "react" ],
   "rules": {
-    "no-unused-vars": 1,
+    "@lightscript/no-unused-vars": 1,
     "no-undef": 1,
-    "array-callback-return": 1,
-    "react/require-render-return": 1,
-    "fp/no-nil": 1
+    "@lightscript/array-callback-return": 1,
+    "@lightscript/react/require-render-return": 1,
+    "@lightscript/fp/no-nil": 1
   }
 }

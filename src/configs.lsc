@@ -111,7 +111,7 @@ export recommended = {
     "no-extra-boolean-cast": "error",
     "no-extra-label": "off",
     "no-extra-parens": "off",
-    "no-extra-semi": "error",
+    "no-extra-semi": "off", // LSC: patched
     "no-fallthrough": "error",
     "no-floating-decimal": "off",
     "no-func-assign": "error",
@@ -195,8 +195,8 @@ export recommended = {
     "no-unsafe-negation": "error",
     "no-unused-expressions": "off",
     "no-unused-labels": "error",
-    "no-unused-vars": "error",
-    "no-use-before-define": "off",
+    "no-unused-vars": "off", // LSC: patched
+    "no-use-before-define": "off", // LSC: patched
     "no-useless-call": "off",
     "no-useless-computed-key": "off",
     "no-useless-concat": "off",
@@ -272,5 +272,7 @@ export recommended = {
     "@lightscript/no-unnecessary-const": 1
     "@lightscript/no-unnecessary-semi": 1
     "@lightscript/no-unnecessary-comma": 1
+    "@lightscript/no-extra-semi": "error"
+    "@lightscript/no-unused-vars": "error"
   }
 }

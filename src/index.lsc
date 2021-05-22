@@ -1,14 +1,11 @@
-import { parse } from './parse'
+import { parse as doParse } from './parse'
 import { analyzeScope } from './scope'
 import visitorKeys from './visitor-keys'
 import rules from './rules'
 import * as configs from './configs'
 import { getServices } from './services'
-import { monkeypatch, monkeypatchRules } from './monkeyPatch'
 
 export parseForESLint(code, options) -> {
-  monkeypatch()
-
   now options = options || {};
   options.ecmaVersion = options.ecmaVersion || 2018;
   options.sourceType = options.sourceType || "module";
@@ -16,7 +13,7 @@ export parseForESLint(code, options) -> {
     options.allowImportExportEverywhere || false;
 
   if (options.eslintVisitorKeys && options.eslintScopeManager) {
-    { ast, compilerConfig } = parse(code, options)
+    { ast, compilerConfig } = doParse(code, options)
     scopeManager = analyzeScope(ast, options, compilerConfig)
     services = getServices(ast, options, scopeManager, compilerConfig)
 
@@ -26,7 +23,6 @@ export parseForESLint(code, options) -> {
   }
 }
 
-export { rules, configs }
+parse = parseForESLint
 
-// Needed for Jest
-export { monkeypatchRules as _monkeypatchRules }
+export { rules, configs, parse }

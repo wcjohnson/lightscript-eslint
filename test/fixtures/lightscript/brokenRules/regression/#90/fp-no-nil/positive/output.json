@@ -1,3 +1,3 @@
 [
-  "1:1 Function must end with a return statement, so that it doesn't return `undefined` fp/no-nil"
+  "1:1 Function must end with a return statement, so that it doesn't return `undefined` @lightscript/fp/no-nil"
 ]

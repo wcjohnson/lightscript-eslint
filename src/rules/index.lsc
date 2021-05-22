@@ -6,6 +6,18 @@ import unnecessaryConst from './unnecessaryConst'
 import unnecessarySemi from './unnecessarySemi'
 import unnecessaryComma from './unnecessaryComma'
 
+// Patched eslint rules
+import noUnusedVars from './patched/no-unused-vars'
+import noUseBeforeDefine from './patched/no-use-before-define'
+import noUnusedExpressions from './patched/no-unused-expressions'
+import restSpreadSpacing from './patched/rest-spread-spacing'
+import keywordSpacing from './patched/keyword-spacing'
+import functionParenNewline from './patched/function-paren-newline'
+import arrowSpacing from './patched/arrow-spacing'
+import fpNoNil from './patched/fp-no-nil'
+
+import nullRule from './nullRule'
+
 rules = {
   variables
   "no-illegal-in-iife": illegalInIife
@@ -14,6 +26,20 @@ rules = {
   "no-unnecessary-const": unnecessaryConst
   "no-unnecessary-semi": unnecessarySemi
   "no-unnecessary-comma": unnecessaryComma
+
+  // Patched rules
+  "no-unused-vars": noUnusedVars
+  "no-use-before-define": noUseBeforeDefine
+  "no-unused-expressions": noUnusedExpressions
+  "rest-spread-spacing": restSpreadSpacing
+  "keyword-spacing": keywordSpacing
+  "function-paren-newline": functionParenNewline
+  "arrow-spacing": arrowSpacing
+  "array-callback-return": nullRule
+  "indent": nullRule
+  "no-extra-semi": nullRule
+  "fp/no-nil": fpNoNil
+  "react/require-render-return": nullRule
 }
 
 export default rules

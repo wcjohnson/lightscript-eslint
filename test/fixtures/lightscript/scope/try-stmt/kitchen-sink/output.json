@@ -1,5 +1,5 @@
 [
   "8:5 'undef' is not defined. no-undef",
-  "9:5 'unused1' is assigned a value but never used. no-unused-vars",
-  "10:5 'unused3' is defined but never used. no-unused-vars"
+  "9:5 'unused1' is assigned a value but never used. @lightscript/no-unused-vars",
+  "10:5 'unused3' is defined but never used. @lightscript/no-unused-vars"
 ]

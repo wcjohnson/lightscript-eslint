@@ -1,5 +1,5 @@
 {
   "rules": {
-    "keyword-spacing": 1
+    "@lightscript/keyword-spacing": 1
   }
 }

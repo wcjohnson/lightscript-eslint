@@ -30,11 +30,7 @@ var _ = require('../..');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// Patch the version of eslint that jest has inside of its VM...
-beforeAll(function () {
-  const rulesModule = require('eslint/lib/rules');
-  return (0, _._monkeypatchRules)(rulesModule);
-});let LinterTestOptions = class LinterTestOptions extends _TestRunner.TestOptions {
+let LinterTestOptions = class LinterTestOptions extends _TestRunner.TestOptions {
   inherits(other) {
     super.inherits(other);
   }assign(other) {

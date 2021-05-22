@@ -1,11 +1,11 @@
 [
   "1:7 'undef' is not defined. no-undef",
   "2:5 'UndefinedAtom' is not defined. no-undef",
-  "3:14 'b' is defined but never used. no-unused-vars",
+  "3:14 'b' is defined but never used. @lightscript/no-unused-vars",
   "3:22 'c' is not defined. no-undef",
-  "4:10 'a' is defined but never used. no-unused-vars",
+  "4:10 'a' is defined but never used. @lightscript/no-unused-vars",
   "5:8 'undefOuter' is not defined. no-undef",
   "5:24 'UndefinedAtom' is not defined. no-undef",
-  "5:43 'unused' is defined but never used. no-unused-vars",
+  "5:43 'unused' is defined but never used. @lightscript/no-unused-vars",
   "5:55 'undefInner' is not defined. no-undef"
 ]

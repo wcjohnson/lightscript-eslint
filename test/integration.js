@@ -2,6 +2,7 @@ var assert = require("assert");
 var eslint = require("eslint");
 var fs = require("fs");
 var path = require("path");
+var ourParser = require("..")
 
 var paths = {
   fixtures: path.join(__dirname, "fixtures", "rules"),
@@ -11,7 +12,7 @@ var encoding = "utf8";
 var errorLevel = 2;
 
 var baseEslintOpts = {
-  parser: require.resolve(".."),
+  parser: "lightscript-eslint",
   parserOptions: {
     sourceType: "script",
   },
@@ -26,7 +27,9 @@ var baseEslintOpts = {
 function lint(opts, done) {
   readFixture(opts.fixture, (err, src) => {
     if (err) return done(err);
-    done(null, eslint.linter.verify(src, opts.eslint));
+    linter = new eslint.Linter();
+    linter.defineParser("lightscript-eslint", ourParser);
+    done(null, linter.verify(src, opts.eslint));
   });
 }
 
