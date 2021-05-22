@@ -1,5 +1,34 @@
+lscBasicRuleset = {
+  /// Rules explicitly disabled because they don't make sense in LSC
+  "constructor-super": "off", // LSC
+  "no-this-before-super": "off", // LSC
+
+  /// Rules disabled but might need a rewrite to work with LSC
+  "getter-return": "off", // LSC, implicit returns
+  "no-unreachable": "off", // LSC, XXX: this rule is bugged, should rewrite
+  indent: "off",
+
+  /// Rules that are broken and are patched or superseded by LSC rules
+  "no-unused-vars": "off", // LSC: patched
+  "no-use-before-define": "off", // LSC: patched
+  "no-extra-semi": "off", // LSC: patched
+  "array-callback-return": "off", // LSC: broken, nulled
+  "keyword-spacing": "off", // LSC: patched
+  "arrow-spacing": "off", // LSC: patched
+  "rest-spread-spacing": "off", // LSC: patched
+
+  /// LSC rules
+  "@lightscript/variables": "error"
+  "@lightscript/no-illegal-in-iife": "error"
+  "@lightscript/no-unnecessary-const": 1
+  "@lightscript/no-unnecessary-semi": 1
+  "@lightscript/no-unnecessary-comma": 1
+  "@lightscript/no-extra-semi": 1
+  "@lightscript/no-unused-vars": "error"
+}
+
 export recommended = {
-  rules: {
+  rules: Object.assign({
     ////////////////////// ESLint core rules
     "accessor-pairs": "off",
     "array-bracket-newline": "off",
@@ -253,32 +282,16 @@ export recommended = {
     "wrap-regex": "off",
     "yield-star-spacing": "off",
     yoda: "off"
+  }, lscBasicRuleset)
+}
 
-    //////////////////// Rules explicitly disabled because they don't make sense in LSC
-    "constructor-super": "off", // LSC
-    "no-this-before-super": "off", // LSC
-
-    //////////////////// Rules disabled but might need a rewrite to work with LSC
-    "getter-return": "off", // LSC, implicit returns
-    "no-unreachable": "off", // LSC, XXX: this rule is bugged, should rewrite
-    indent: "off",
-
-    //////////////////// Rules that are broken and are patched or superseded by LSC rules
-    "no-unused-vars": "off", // LSC: patched
-    "no-use-before-define": "off", // LSC: patched
-    "no-extra-semi": "off", // LSC: patched
-    "array-callback-return": "off", // LSC: broken, nulled
-    "keyword-spacing": "off", // LSC: patched
-    "arrow-spacing": "off", // LSC: patched
-    "rest-spread-spacing": "off", // LSC: patched
-
-    //////////////////// LSC rules
-    "@lightscript/variables": "error"
-    "@lightscript/no-illegal-in-iife": "error"
-    "@lightscript/no-unnecessary-const": 1
-    "@lightscript/no-unnecessary-semi": 1
-    "@lightscript/no-unnecessary-comma": 1
-    "@lightscript/no-extra-semi": 1
-    "@lightscript/no-unused-vars": "error"
-  }
+export automatic = {
+  overrides: [
+    {
+      files: [ '**/*.lsc','**/*.lsx' ]
+      parser: '@lightscript/eslint-plugin'
+      plugins: [ '@lightscript/eslint-plugin' ]
+      rules: Object.assign({}, lscBasicRuleset)
+    }
+  ]
 }
