@@ -1,6 +1,6 @@
 # @lightscript/eslint-plugin
 
-A first-class linter for LightScript built on ESLint 5.
+A first-class ESLint linter plugin for LightScript.
 
 Issues: https://github.com/wcjohnson/lightscript/issues
 
@@ -17,15 +17,14 @@ Issues: https://github.com/wcjohnson/lightscript/issues
 
     ```json
     {
-      "parser": "@lightscript/eslint-plugin",
-      "plugins": ["@lightscript/eslint-plugin"],
       "extends": [
-        "plugin:@lightscript/recommended"
+        "eslint:recommended",
+        "plugin:@lightscript/automatic"
       ]
     }
     ```
 
-1. Lint your source code:
+3. Lint your source code:
     ```sh
     $ (npm bin)/eslint --ext .js,.lsc src/
     ```
@@ -34,34 +33,33 @@ Issues: https://github.com/wcjohnson/lightscript/issues
 
 ## The Details
 
-`@lightscript/eslint-plugin` is an extension for ESLint `(>= 5.0.0)` that parses and statically analyzes LightScript code.
+`@lightscript/eslint-plugin` is an extension for ESLint that parses and statically analyzes LightScript code.
 It is based on the `babel-eslint` plugin and has been modified to support LightScript AST.
 
-Any file that includes `.lsc` or `.lsx` in the filename (including, eg, `.lsc.js`)
-will be processed as LightScript; all others will be processed exactly as in `babel-eslint`.
+When using the `@lightscript/automatic` config package, any file with the extension `.lsc` or `.lsx` in the filename will be processed as LightScript; all others will be processed as JavaScript according to other ESLint configuration values.
 
 `@lightscript/babel-preset` is a peerDependency and must be installed alongside the linter plugin. If you have a working LightScript build chain, this should already be the case.
 
-## Usage
+# Usage
 
-`@lightscript/eslint-plugin` is both a parser and plugin for ESLint 5 `(>= 5.0.0)`. In order to use it, it must be added
-to your ESLint configuration as both a parser and a plugin:
+`@lightscript/eslint-plugin` is both a parser and plugin for modern versions of ESLint. The easiest way to enable the plugin is to use the automatic configuration, which will set the linter to lint LightScript files using a reasonable default ruleset. Place the following in your configuration file:
+
+```json
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:@lightscript/automatic"
+  ]
+}
+```
+
+For more advanced ESLint configurations, the parser and plugin can be enabled
+manually within ESLint configuration files:
 
 ```json
 {
   "parser": "@lightscript/eslint-plugin",
   "plugins": ["@lightscript/eslint-plugin"]
-}
-```
-
-No further configuration is specifically required in order to use the plugin, but to get the most out of it, we recommend enabling
-our `recommended` ruleset. Our `recommended` ruleset includes the basic ESLint recommended ruleset, along with disabling some broken rules and adding LightScript-specific rules. Enable it by adding the following to your config:
-
-```json
-{
-  "extends": [
-    "plugin:@lightscript/recommended"
-  ]
 }
 ```
 
@@ -87,23 +85,21 @@ $ eslint --ext .js,.lsc src/
   ]
   ```
 
-## Rules
+# Rules
 
-`@lightscript/eslint-plugin` provides a number of linting rules designed specifically for LightScript code. Rules are configured using the standard ESLint mechanisms, e.g. by adding the rule to your `.eslintrc`:
+`@lightscript/eslint-plugin` provides a number of linting rules designed specifically for LightScript code. In addition, a number of replacements for ESLint's default rules, which are either broken or inapplicable to LightScript, are provided as well.
+
+Rules are configured using the standard ESLint mechanisms, e.g. by adding the rule to your `.eslintrc`:
 
 ```json
 {
   "rules": {
-    "@lightscript/unnecessary-const": 1
+    "@lightscript/unnecessary-const": "warn"
   }
 }
 ```
 
-Some rules contain automated fixes. You can apply these autofixes to a file using the ESLint CLI:
-
-```
-$ eslint --fix src/fileToFix.lsc
-```
+## LightScript rules
 
 ### `@lightscript/variables`
 
@@ -144,42 +140,39 @@ Warn when a `,` is unnecessary according to LightScript list separator rules.
 
 - Included in `recommended` preset.
 
-## Known Issues
+## Broken or obsolete ESLint rules
 
-- Issues with hoisting ESLint outside of package root (e.g. Lerna, Yarn workspaces)
-If ESLint is hoisted outside of the root `node_modules` folder of your package, it will not be able to find the plugin and you will encounter "can't find plugin" errors. To fix this, use the `nohoist` option of your monorepo tool to ensure ESLint is not hoisted out of your package.
+All these rules are automatically disabled by `recommended` and `automatic` presets.
 
-- `no-extra-semi` rule:
-When linting LightScript files, this rule is automatically disabled. We recommend the `@lightscript/unnecessary-semi` rule instead.
+### `no-unused-vars`
+### `no-unused-expressions`
+### `no-use-before-define`
+These semantic rules must be modified to support LightScript. The versions built into ESLint will not work. Enable new versions by prefixing with `@lightscript/`  i.e. `@lightscript/no-unused-vars`, `@lightscript/no-unused-expressions`, etc.
 
-- `array-callback-return` rule:
-When linting LightScript files, this rule is automatically disabled. This rule
-is broken pending changes to ESLint's code path analysis; see
-[this issue](https://github.com/eslint/eslint/issues/10823)
+### `no-unreachable`
+### `array-callback-return`
+These rules are unfortunately broken due to ESLint's code path analysis API. See [https://github.com/eslint/eslint/issues/10823] for more information.
 
-- `react/require-render-return` rule:
-When linting LightScript files, this rule is automatically disabled. Because
-of LightScript's implicit returns, this rule is almost always superfluous.
+### `no-extra-semi`
+This rule is superseded by `@lightscript/no-unnecessary-semi` and should be disabled.
 
-Flow:
-> Check out [eslint-plugin-flowtype](https://github.com/gajus/eslint-plugin-flowtype): An `eslint` plugin that makes flow type annotations global variables and marks declarations as used. Solves the problem of false positives with `no-undef` and `no-unused-vars`.
-- `no-undef` for global flow types: `ReactElement`, `ReactClass` [#130](https://github.com/babel/babel-eslint/issues/130#issuecomment-111215076)
-  - Workaround: define types as globals in `.eslintrc` or define types and import them `import type ReactElement from './types'`
-- `no-unused-vars/no-undef` with Flow declarations (`declare module A {}`) [#132](https://github.com/babel/babel-eslint/issues/132#issuecomment-112815926)
+### `keyword-spacing`
+### `arrow-spacing`
+### `rest-spread-spacing`
+### `function-paren-newline`
+### `indent`
+These stylistic rules break on LightScript code. They can be prefixed by `@lightscript/` to enable fixed versions.
 
-Modules/strict mode
-- `no-unused-vars: [2, {vars: local}]` [#136](https://github.com/babel/babel-eslint/issues/136)
+## Broken ecosystem rules
 
-Please check out [eslint-plugin-react](https://github.com/yannickcr/eslint-plugin-react) for React/JSX issues
-- `no-unused-vars` with jsx
+### `react/require-render-return`
+This rule does not understand LightScript implicit returns. Fix by replacing with `@lightscript/react/require-render-return`.
 
-Please check out [eslint-plugin-babel](https://github.com/babel/eslint-plugin-babel) for other issues
-
-## Contributing
+# Contributing
 
 Issues: https://github.com/wcjohnson/lightscript/issues
 
-## Deep Dives
+# Deep Dives
 
 ### parserOptions
 
