@@ -4,11 +4,9 @@ export recommended = {
     "accessor-pairs": "off",
     "array-bracket-newline": "off",
     "array-bracket-spacing": "off",
-    "array-callback-return": "off",
     "array-element-newline": "off",
     "arrow-body-style": "off",
     "arrow-parens": "off",
-    "arrow-spacing": "off",
     "block-scoped-var": "off",
     "block-spacing": "off",
     "brace-style": "off",
@@ -23,7 +21,6 @@ export recommended = {
     "computed-property-spacing": "off",
     "consistent-return": "off",
     "consistent-this": "off",
-    "constructor-super": "off", // LSC
     curly: "off",
     "default-case": "off",
     "dot-location": "off",
@@ -37,7 +34,6 @@ export recommended = {
     "func-style": "off",
     "function-paren-newline": "off",
     "generator-star-spacing": "off",
-    "getter-return": "off", // LSC
     "global-require": "off",
     "guard-for-in": "off",
     "handle-callback-err": "off",
@@ -45,12 +41,10 @@ export recommended = {
     "id-length": "off",
     "id-match": "off",
     "implicit-arrow-linebreak": "off",
-    indent: "off",
     "indent-legacy": "off",
     "init-declarations": "off",
     "jsx-quotes": "off",
     "key-spacing": "off",
-    "keyword-spacing": "off",
     "line-comment-position": "off",
     "linebreak-style": "off",
     "lines-around-comment": "off",
@@ -111,7 +105,6 @@ export recommended = {
     "no-extra-boolean-cast": "error",
     "no-extra-label": "off",
     "no-extra-parens": "off",
-    "no-extra-semi": "off", // LSC: patched
     "no-fallthrough": "error",
     "no-floating-decimal": "off",
     "no-func-assign": "error",
@@ -180,7 +173,6 @@ export recommended = {
     "no-tabs": "off",
     "no-template-curly-in-string": "off",
     "no-ternary": "off",
-    "no-this-before-super": "off", // LSC
     "no-throw-literal": "off",
     "no-trailing-spaces": "off",
     "no-undef": "error",
@@ -190,13 +182,10 @@ export recommended = {
     "no-unexpected-multiline": "error",
     "no-unmodified-loop-condition": "off",
     "no-unneeded-ternary": "off",
-    "no-unreachable": "off", // LSC, XXX: this rule is bugged, should rewrite
     "no-unsafe-finally": "error",
     "no-unsafe-negation": "error",
     "no-unused-expressions": "off",
     "no-unused-labels": "error",
-    "no-unused-vars": "off", // LSC: patched
-    "no-use-before-define": "off", // LSC: patched
     "no-useless-call": "off",
     "no-useless-computed-key": "off",
     "no-useless-concat": "off",
@@ -238,7 +227,6 @@ export recommended = {
     "require-jsdoc": "off",
     "require-unicode-regexp": "off",
     "require-yield": "error",
-    "rest-spread-spacing": "off",
     semi: "off",
     "semi-spacing": "off",
     "semi-style": "off",
@@ -266,13 +254,31 @@ export recommended = {
     "yield-star-spacing": "off",
     yoda: "off"
 
+    //////////////////// Rules explicitly disabled because they don't make sense in LSC
+    "constructor-super": "off", // LSC
+    "no-this-before-super": "off", // LSC
+
+    //////////////////// Rules disabled but might need a rewrite to work with LSC
+    "getter-return": "off", // LSC, implicit returns
+    "no-unreachable": "off", // LSC, XXX: this rule is bugged, should rewrite
+    indent: "off",
+
+    //////////////////// Rules that are broken and are patched or superseded by LSC rules
+    "no-unused-vars": "off", // LSC: patched
+    "no-use-before-define": "off", // LSC: patched
+    "no-extra-semi": "off", // LSC: patched
+    "array-callback-return": "off", // LSC: broken, nulled
+    "keyword-spacing": "off", // LSC: patched
+    "arrow-spacing": "off", // LSC: patched
+    "rest-spread-spacing": "off", // LSC: patched
+
     //////////////////// LSC rules
-    "@lightscript/variables": 2
-    "@lightscript/no-illegal-in-iife": 2
+    "@lightscript/variables": "error"
+    "@lightscript/no-illegal-in-iife": "error"
     "@lightscript/no-unnecessary-const": 1
     "@lightscript/no-unnecessary-semi": 1
     "@lightscript/no-unnecessary-comma": 1
-    "@lightscript/no-extra-semi": "error"
+    "@lightscript/no-extra-semi": 1
     "@lightscript/no-unused-vars": "error"
   }
 }
